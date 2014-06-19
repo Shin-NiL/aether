@@ -420,9 +420,9 @@ class CommandLineTools {
 		LogHelper.println ("\x1b[36;1m                888   888                     ");
 		LogHelper.println ("                888   888                     ");
 		LogHelper.println (" 8888b.  .d88b. 88888888888b.  .d88b. 888d888 ");
-		LogHelper.println ("    \"88bd8P  Y8b888   888 \"88bd8P  Y8b888P\"   ");
-		LogHelper.println (".d88888888888888888   888  88888888888888     \x1b[34;1m");
-		LogHelper.println ("888  888Y8b.    Y88b. 888  888Y8b.    888     \x1b[30;1m");
+		LogHelper.println ("    \"88bd8P  Y8b888   888 \"88bd8P  Y8b888P\"   \x1b[34;1m");
+		LogHelper.println (".d88888888888888888   888  88888888888888     ");
+		LogHelper.println ("888  888Y8b.    Y88b. 888  888Y8b.    888     \x1b[0m\x1b[34m");
 		LogHelper.println ("\"Y888888 \"Y8888  \"Y888888  888 \"Y8888 888     \x1b[0m");
 		
 		LogHelper.println ("");
