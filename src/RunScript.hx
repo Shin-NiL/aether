@@ -1321,7 +1321,7 @@ class RunScript {
 				
 			}*/
 			
-			var args = [ "tools.n" /*, define*/ ].concat (args);
+			var args = [ PathHelper.combine (Sys.getCwd (), "tools.n") ].concat (args);
 			
 			Sys.exit (runCommand (workingDirectory, "neko", args));
 			
