@@ -1310,7 +1310,7 @@ class RunScript {
 				
 			}
 			
-			var workingDirectory = args.pop ();
+			//var workingDirectory = args.pop ();
 			/*var define = "-Dopenfl";
 			
 			var version = getVersion ();
@@ -1321,9 +1321,9 @@ class RunScript {
 				
 			}*/
 			
-			var args = [ PathHelper.combine (Sys.getCwd (), "tools.n") ].concat (args);
+			var args = [ "tools.n" ].concat (args);
 			
-			Sys.exit (runCommand (workingDirectory, "neko", args));
+			Sys.exit (runCommand ("", "neko", args));
 			
 		}
 		
