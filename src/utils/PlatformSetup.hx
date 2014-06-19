@@ -518,9 +518,9 @@ class PlatformSetup {
 						
 					}
 				
-				case "lime", "":
+				case "aether", "":
 					
-					setupLime ();
+					setupAether ();
 				
 				default:
 					
@@ -677,6 +677,96 @@ class PlatformSetup {
 				ProcessHelper.runCommand ("", "open", [ path ], false);
 				
 			}
+			
+		}
+		
+	}
+	
+	public static function setupAether ():Void {
+		
+		//setupHaxelib (new Haxelib ("aether"));
+		
+		var haxePath = Sys.getEnv ("HAXEPATH");
+		
+		if (PlatformHelper.hostPlatform == Platform.WINDOWS) {
+			
+			if (haxePath == null || haxePath == "") {
+				
+				haxePath = "C:\\HaxeToolkit\\haxe\\";
+				
+			}
+			
+			File.copy (PathHelper.getHaxelib (new Haxelib ("aether")) + "\\templates\\\\bin\\aether.bat", haxePath + "\\aether.bat");
+			File.copy (PathHelper.getHaxelib (new Haxelib ("aether")) + "\\templates\\\\bin\\aether.sh", haxePath + "\\aether");
+			
+			// For now, preserve 'lime' command as well
+			
+			File.copy (PathHelper.getHaxelib (new Haxelib ("aether")) + "\\templates\\\\bin\\aether.bat", haxePath + "\\lime.bat");
+			File.copy (PathHelper.getHaxelib (new Haxelib ("aether")) + "\\templates\\\\bin\\aether.sh", haxePath + "\\lime");
+			
+		} else {
+			
+			if (haxePath == null || haxePath == "") {
+				
+				haxePath = "/usr/lib/haxe";
+				
+			}
+			
+			var installedCommand = false;
+			var answer = Yes;
+			
+			if (targetFlags.exists ("y")) {
+				
+				Sys.println ("Do you want to install the \"aether\" command? [y/n/a] y");
+				
+			} else {
+				
+				answer = ask ("Do you want to install the \"aether\" command?");
+				
+			}
+			
+			if (answer == Yes || answer == Always) {
+				
+				try {
+					
+					ProcessHelper.runCommand ("", "sudo", [ "cp", "-f", PathHelper.getHaxelib (new Haxelib ("aether")) + "/templates/bin/aether.sh", "/usr/bin/aether" ], false);
+					ProcessHelper.runCommand ("", "sudo", [ "chmod", "755", "/usr/bin/aether" ], false);
+					installedCommand = true;
+					
+				} catch (e:Dynamic) {}
+				
+				// For now, preserve 'lime' command as well
+				
+				try {
+					
+					ProcessHelper.runCommand ("", "sudo", [ "cp", "-f", PathHelper.getHaxelib (new Haxelib ("aether")) + "/templates/bin/aether.sh", "/usr/bin/lime" ], false);
+					ProcessHelper.runCommand ("", "sudo", [ "chmod", "755", "/usr/bin/lime" ], false);
+					
+				} catch (e:Dynamic) {}
+				
+			}
+			
+			if (!installedCommand) {
+				
+				Sys.println ("");
+				Sys.println ("To finish setup, we recommend you either...");
+				Sys.println ("");
+				Sys.println (" a) Manually add an alias called \"aether\" to run \"haxelib run aether\"");
+				Sys.println (" b) Run the following commands:");
+				Sys.println ("");
+				Sys.println ("sudo cp \"" + PathHelper.getHaxelib (new Haxelib ("aether")) + "/templates/bin/aether.sh\" /usr/bin/aether");
+				Sys.println ("sudo chmod 755 /usr/bin/aether");
+				Sys.println ("");
+				
+			}
+			
+		}
+		
+		if (PlatformHelper.hostPlatform == Platform.MAC) {
+			
+			var defines = getDefines ();
+			defines.set ("MAC_USE_CURRENT_SDK", "1");
+			writeConfig (defines.get ("HXCPP_CONFIG"), defines);
 			
 		}
 		
@@ -1704,83 +1794,6 @@ class PlatformSetup {
 		ProcessHelper.runCommand ("", "haxelib", [ "install", "cordova" ], true, true);
 		
 	}
-	
-	
-	public static function setupLime ():Void {
-		
-		setupHaxelib (new Haxelib ("lime"));
-		
-		var haxePath = Sys.getEnv ("HAXEPATH");
-		
-		if (PlatformHelper.hostPlatform == Platform.WINDOWS) {
-			
-			if (haxePath == null || haxePath == "") {
-				
-				haxePath = "C:\\HaxeToolkit\\haxe\\";
-				
-			}
-			
-			File.copy (PathHelper.getHaxelib (new Haxelib ("lime-tools")) + "\\templates\\\\bin\\lime.bat", haxePath + "\\lime.bat");
-			File.copy (PathHelper.getHaxelib (new Haxelib ("lime-tools")) + "\\templates\\\\bin\\lime.sh", haxePath + "\\lime");
-			
-		} else {
-			
-			if (haxePath == null || haxePath == "") {
-				
-				haxePath = "/usr/lib/haxe";
-				
-			}
-			
-			var installedCommand = false;
-			var answer = Yes;
-			
-			if (targetFlags.exists ("y")) {
-				
-				Sys.println ("Do you want to install the \"lime\" command? [y/n/a] y");
-				
-			} else {
-				
-				answer = ask ("Do you want to install the \"lime\" command?");
-				
-			}
-			
-			if (answer == Yes || answer == Always) {
-				
-				try {
-					
-					ProcessHelper.runCommand ("", "sudo", [ "cp", "-f", PathHelper.getHaxelib (new Haxelib ("lime-tools")) + "/templates/bin/lime.sh", "/usr/bin/lime" ], false);
-					ProcessHelper.runCommand ("", "sudo", [ "chmod", "755", "/usr/bin/lime" ], false);
-					installedCommand = true;
-					
-				} catch (e:Dynamic) {}
-				
-			}
-			
-			if (!installedCommand) {
-				
-				Sys.println ("");
-				Sys.println ("To finish setup, we recommend you either...");
-				Sys.println ("");
-				Sys.println (" a) Manually add an alias called \"lime\" to run \"haxelib run lime\"");
-				Sys.println (" b) Run the following commands:");
-				Sys.println ("");
-				Sys.println ("sudo cp \"" + PathHelper.getHaxelib (new Haxelib ("lime-tools")) + "/templates/bin/lime.sh\" /usr/bin/lime");
-				Sys.println ("sudo chmod 755 /usr/bin/lime");
-				Sys.println ("");
-				
-			}
-			
-		}
-		
-		if (PlatformHelper.hostPlatform == Platform.MAC) {
-			
-			var defines = getDefines ();
-			defines.set ("MAC_USE_CURRENT_SDK", "1");
-			writeConfig (defines.get ("HXCPP_CONFIG"), defines);
-			
-		}
-		
-	}
 
 
 	public static function setupLinux ():Void {
@@ -2058,7 +2071,7 @@ class PlatformSetup {
 			
 			if (FileSystem.exists (git)) {
 				
-				LogHelper.info ("\x1b[32;1mUpdating \"" + haxelib.name + "\"\x1b[0m");
+				LogHelper.info ("\x1b[36;1mUpdating \"" + haxelib.name + "\"\x1b[0m");
 				ProcessHelper.runCommand (lib, "git", [ "pull" ]);
 				
 			}

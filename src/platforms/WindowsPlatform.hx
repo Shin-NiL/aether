@@ -92,7 +92,7 @@ class WindowsPlatform implements IPlatformTool {
 			
 			if (IconHelper.createWindowsIcon (project.icons, iconPath)) {
 				
-				var templates = [ PathHelper.getHaxelib (new Haxelib ("lime-tools")) + "/templates" ].concat (project.templatePaths);
+				var templates = [ PathHelper.getHaxelib (new Haxelib ("aether")) + "/templates" ].concat (project.templatePaths);
 				ProcessHelper.runCommand ("", PathHelper.findTemplate (templates, "bin/ReplaceVistaIcon.exe"), [ executablePath, iconPath ], true, true);
 				
 			}

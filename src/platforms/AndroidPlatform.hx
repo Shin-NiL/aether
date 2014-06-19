@@ -170,7 +170,7 @@ class AndroidPlatform implements IPlatformTool {
 		
 		if (!project.environment.exists ("ANDROID_SETUP")) {
 			
-			LogHelper.error ("You need to run \"lime setup android\" before you can use the Android target");
+			LogHelper.error ("You need to run \"aether setup android\" before you can use the Android target");
 			
 		}
 		

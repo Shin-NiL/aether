@@ -35,7 +35,7 @@ class CreateTemplate {
 		context.ANDROID_TARGET_SDK_VERSION = "::ANDROID_TARGET_SDK_VERSION::";
 		
 		PathHelper.mkdir (title);
-		FileHelper.recursiveCopyTemplate ([ PathHelper.getHaxelib (new Haxelib ("lime-tools"), true)  + "/templates" ], "extension", title, context);
+		FileHelper.recursiveCopyTemplate ([ PathHelper.getHaxelib (new Haxelib ("aether"), true)  + "/templates" ], "extension", title, context);
 		
 		if (FileSystem.exists (title + "/Extension.hx")) {
 			
@@ -192,14 +192,14 @@ class CreateTemplate {
 		
 		if (projectName == null && projectName == "") {
 			
-			LogHelper.error ("You must specify a project name when using \"lime create\"");
+			LogHelper.error ("You must specify a project name when using \"aether create\"");
 			return;
 			
 		}
 		
 		if (sampleName == null || sampleName == "") {
 			
-			LogHelper.error ("You must specify a sample name to copy when using \"lime create\"");
+			LogHelper.error ("You must specify a sample name to copy when using \"aether create\"");
 			return;
 			
 		}
@@ -299,14 +299,14 @@ class CreateTemplate {
 		
 		LogHelper.println ("\x1b[1mYou must specify a template when using the 'create' command.\x1b[0m");
 		LogHelper.println ("");
-		LogHelper.println (" \x1b[32;1mUsage:\x1b[0m \x1b[1mlime\x1b[0m create " + projectName + ":project \"com.package.name\" \x1b[3;37m\"OutputDirectory\"\x1b[0m");
-		LogHelper.println (" \x1b[32;1mUsage:\x1b[0m \x1b[1mlime\x1b[0m create " + projectName + ":(sample) \x1b[3;37m\"OutputDirectory\"\x1b[0m");
-		LogHelper.println (" \x1b[32;1mUsage:\x1b[0m \x1b[1mlime\x1b[0m create extension \"ExtensionName\"");
+		LogHelper.println (" \x1b[36;1mUsage:\x1b[0m \x1b[1maether\x1b[0m create " + projectName + ":project \"com.package.name\" \x1b[3;37m\"OutputDirectory\"\x1b[0m");
+		LogHelper.println (" \x1b[36;1mUsage:\x1b[0m \x1b[1maether\x1b[0m create " + projectName + ":(sample) \x1b[3;37m\"OutputDirectory\"\x1b[0m");
+		LogHelper.println (" \x1b[36;1mUsage:\x1b[0m \x1b[1maether\x1b[0m create extension \"ExtensionName\"");
 		
 		if (templates.length > 0) {
 			
 			LogHelper.println ("");
-			LogHelper.println (" \x1b[32;1mAvailable Templates:\x1b[0m");
+			LogHelper.println (" \x1b[36;1mAvailable Templates:\x1b[0m");
 			LogHelper.println ("");
 			
 			for (template in templates) {

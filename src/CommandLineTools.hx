@@ -125,7 +125,7 @@ class CommandLineTools {
 		var project = initializeProject ();
 		var platform:IPlatformTool = null;
 		
-		LogHelper.info ("", "\x1b[32;1mUsing target platform: " + project.target + "\x1b[0m");
+		LogHelper.info ("", "\x1b[36;1mUsing target platform: " + project.target + "\x1b[0m");
 		
 		switch (project.target) {
 			
@@ -193,14 +193,14 @@ class CommandLineTools {
 			
 			if (!Reflect.hasField (metaFields.clean, "ignore") && (command == "clean" || targetFlags.exists ("clean"))) {
 				
-				LogHelper.info ("", "\n\x1b[32;1mRunning command: CLEAN\x1b[0m");
+				LogHelper.info ("", "\n\x1b[36;1mRunning command: CLEAN\x1b[0m");
 				platform.clean (project);
 				
 			}
 			
 			if (!Reflect.hasField (metaFields.update, "ignore") && (command == "update" || command == "build" || command == "test")) {
 				
-				LogHelper.info ("", "\n\x1b[32;1mRunning command: UPDATE\x1b[0m");
+				LogHelper.info ("", "\n\x1b[36;1mRunning command: UPDATE\x1b[0m");
 				AssetHelper.processLibraries (project);
 				platform.update (project);
 				
@@ -208,21 +208,21 @@ class CommandLineTools {
 			
 			if (!Reflect.hasField (metaFields.build, "ignore") && (command == "build" || command == "test")) {
 				
-				LogHelper.info ("", "\n\x1b[32;1mRunning command: BUILD\x1b[0m");
+				LogHelper.info ("", "\n\x1b[36;1mRunning command: BUILD\x1b[0m");
 				platform.build (project);
 				
 			}
 			
 			if (!Reflect.hasField (metaFields.install, "ignore") && (command == "install" || command == "run" || command == "test")) {
 				
-				LogHelper.info ("", "\n\x1b[32;1mRunning command: INSTALL\x1b[0m");
+				LogHelper.info ("", "\n\x1b[36;1mRunning command: INSTALL\x1b[0m");
 				platform.install (project);
 				
 			}
 		
 			if (!Reflect.hasField (metaFields.run, "ignore") && (command == "run" || command == "rerun" || command == "test")) {
 				
-				LogHelper.info ("", "\n\x1b[32;1mRunning command: RUN\x1b[0m");
+				LogHelper.info ("", "\n\x1b[36;1mRunning command: RUN\x1b[0m");
 				platform.run (project, additionalArguments);
 				
 			}
@@ -231,7 +231,7 @@ class CommandLineTools {
 				
 				if (traceEnabled || command == "trace") {
 					
-					LogHelper.info ("", "\n\x1b[32;1mRunning command: TRACE\x1b[0m");
+					LogHelper.info ("", "\n\x1b[36;1mRunning command: TRACE\x1b[0m");
 					platform.trace (project);
 					
 				}
@@ -260,7 +260,7 @@ class CommandLineTools {
 	
 	private function createTemplate () {
 		
-		LogHelper.info ("", "\x1b[32;1mRunning command: CREATE\x1b[0m");
+		LogHelper.info ("", "\x1b[36;1mRunning command: CREATE\x1b[0m");
 		
 		if (words.length > 0) {
 			
@@ -338,16 +338,16 @@ class CommandLineTools {
 		displayInfo ();
 		
 		LogHelper.println ("");
-		LogHelper.println (" \x1b[32;1mUsage:\x1b[0m \x1b[1mlime\x1b[0m setup \x1b[3;37m(target)\x1b[0m");
-		LogHelper.println (" \x1b[32;1mUsage:\x1b[0m \x1b[1mlime\x1b[0m clean|update|build|run|test|display \x1b[3;37m<project>\x1b[0m (target) \x1b[3;37m[options]\x1b[0m");
-		LogHelper.println (" \x1b[32;1mUsage:\x1b[0m \x1b[1mlime\x1b[0m create library:template \x1b[3;37m(directory)\x1b[0m");
-		LogHelper.println (" \x1b[32;1mUsage:\x1b[0m \x1b[1mlime\x1b[0m rebuild \x1b[3;37m<extension>\x1b[0m (target)\x1b[3;37m,(target),...\x1b[0m");
-		LogHelper.println (" \x1b[32;1mUsage:\x1b[0m \x1b[1mlime\x1b[0m install|remove|upgrade <library>");
-		LogHelper.println (" \x1b[32;1mUsage:\x1b[0m \x1b[1mlime\x1b[0m help");
+		LogHelper.println (" \x1b[36;1mUsage:\x1b[0m \x1b[1maether\x1b[0m setup \x1b[3;37m(target)\x1b[0m");
+		LogHelper.println (" \x1b[36;1mUsage:\x1b[0m \x1b[1maether\x1b[0m clean|update|build|run|test|display \x1b[3;37m<project>\x1b[0m (target) \x1b[3;37m[options]\x1b[0m");
+		LogHelper.println (" \x1b[36;1mUsage:\x1b[0m \x1b[1maether\x1b[0m create library:template \x1b[3;37m(directory)\x1b[0m");
+		LogHelper.println (" \x1b[36;1mUsage:\x1b[0m \x1b[1maether\x1b[0m rebuild \x1b[3;37m<extension>\x1b[0m (target)\x1b[3;37m,(target),...\x1b[0m");
+		LogHelper.println (" \x1b[36;1mUsage:\x1b[0m \x1b[1maether\x1b[0m install|remove|upgrade <library>");
+		LogHelper.println (" \x1b[36;1mUsage:\x1b[0m \x1b[1maether\x1b[0m help");
 		LogHelper.println ("");
-		LogHelper.println (" \x1b[32;1mCommands:\x1b[0m ");
+		LogHelper.println (" \x1b[36;1mCommands:\x1b[0m ");
 		LogHelper.println ("");
-		LogHelper.println ("  \x1b[1msetup\x1b[0m -- Setup Lime or a specific target");
+		LogHelper.println ("  \x1b[1msetup\x1b[0m -- Setup Aether or a specific platform");
 		LogHelper.println ("  \x1b[1mclean\x1b[0m -- Remove the target build directory if it exists");
 		LogHelper.println ("  \x1b[1mupdate\x1b[0m -- Copy assets for the specified project/target");
 		LogHelper.println ("  \x1b[1mbuild\x1b[0m -- Compile and package for the specified project/target");
@@ -361,7 +361,7 @@ class CommandLineTools {
 		LogHelper.println ("  \x1b[1mupgrade\x1b[0m -- Upgrade a library from haxelib");
 		LogHelper.println ("  \x1b[1mhelp\x1b[0m -- Show this information");
 		LogHelper.println ("");
-		LogHelper.println (" \x1b[32;1mTargets:\x1b[0m ");
+		LogHelper.println (" \x1b[36;1mTargets:\x1b[0m ");
 		LogHelper.println ("");
 		LogHelper.println ("  \x1b[1mandroid\x1b[0m -- Create an Android application");
 		LogHelper.println ("  \x1b[1mblackberry\x1b[0m -- Create a BlackBerry application");
@@ -375,7 +375,7 @@ class CommandLineTools {
 		LogHelper.println ("  \x1b[1mwebos\x1b[0m -- Create a webOS application");
 		LogHelper.println ("  \x1b[1mwindows\x1b[0m -- Create a Windows application");
 		LogHelper.println ("");
-		LogHelper.println (" \x1b[32;1mOptions:\x1b[0m ");
+		LogHelper.println (" \x1b[36;1mOptions:\x1b[0m ");
 		LogHelper.println ("");
 		LogHelper.println ("  \x1b[1m-D\x1b[0;3mvalue\x1b[0m -- Specify a define to use when processing other commands");
 		LogHelper.println ("  \x1b[1m-debug\x1b[0m -- Use debug configuration instead of release");
@@ -392,7 +392,7 @@ class CommandLineTools {
 		LogHelper.println ("  \x1b[3m(html5)\x1b[0m \x1b[1m-minify\x1b[0m -- Minify output using the Google Closure compiler");
 		LogHelper.println ("  \x1b[3m(html5)\x1b[0m \x1b[1m-minify -yui\x1b[0m -- Minify output using the YUI compressor");
 		LogHelper.println ("");
-		LogHelper.println (" \x1b[32;1mProject Overrides:\x1b[0m ");
+		LogHelper.println (" \x1b[36;1mProject Overrides:\x1b[0m ");
 		LogHelper.println ("");
 		LogHelper.println ("  \x1b[1m--app-\x1b[0;3moption=value\x1b[0m -- Override a project <app/> setting");
 		LogHelper.println ("  \x1b[1m--meta-\x1b[0;3moption=value\x1b[0m -- Override a project <meta/> setting");
@@ -416,16 +416,22 @@ class CommandLineTools {
 			
 		}
 		
-		LogHelper.println ("\x1b[32;1m |. _ _  _");
-		LogHelper.println (" ||| | ||_|");
-		LogHelper.println (" ||| | ||_.\x1b[0m");
+		LogHelper.println ("\x1b[36m                888   888                     ");
+		LogHelper.println ("\x1b[36;1m                888   888                     ");
+		LogHelper.println ("                888   888                     ");
+		LogHelper.println (" 8888b.  .d88b. 88888888888b.  .d88b. 888d888 ");
+		LogHelper.println ("    \"88bd8P  Y8b888   888 \"88bd8P  Y8b888P\"   ");
+		LogHelper.println (".d88888888888888888   888  88888888888888     \x1b[34;1m");
+		LogHelper.println ("888  888Y8b.    Y88b. 888  888Y8b.    888     \x1b[30;1m");
+		LogHelper.println ("\"Y888888 \"Y8888  \"Y888888  888 \"Y8888 888     \x1b[0m");
+		
 		LogHelper.println ("");
-		LogHelper.println ("\x1b[1mLime Command-Line Tools\x1b[0;1m (" + version + ")\x1b[0m");
+		LogHelper.println ("\x1b[1mAether Command-Line Tools\x1b[0;1m (" + version + ")\x1b[0m");
 		
 		
 		if (showHint) {
 			
-			LogHelper.println ("Use \x1b[3mlime setup\x1b[0m to configure Lime or \x1b[3mlime help\x1b[0m for more commands");
+			LogHelper.println ("Use \x1b[3maether setup\x1b[0m to configure platforms or \x1b[3maether help\x1b[0m for more commands");
 			
 		}
 		
@@ -621,7 +627,7 @@ class CommandLineTools {
 		
 		if (FileSystem.exists (config)) {
 			
-			LogHelper.info ("", "\x1b[32;1mReading HXCPP config: " + config + "\x1b[0m");
+			LogHelper.info ("", "\x1b[36;1mReading HXCPP config: " + config + "\x1b[0m");
 			
 			return new ProjectXMLParser (config);
 			
@@ -638,7 +644,7 @@ class CommandLineTools {
 	
 	private function getVersion ():String {
 		
-		var json = Json.parse (File.getContent (PathHelper.getHaxelib (new Haxelib ("lime")) + "/haxelib.json"));
+		var json = Json.parse (File.getContent (PathHelper.getHaxelib (new Haxelib ("aether")) + "/haxelib.json"));
 		return json.version;
 		
 	}
@@ -650,7 +656,7 @@ class CommandLineTools {
 		var haxePath = Sys.getEnv ("HAXEPATH");
 		var command = (haxePath != null && haxePath != "") ? haxePath + "/haxelib" : "haxelib";
 		
-		var process = new Process (command, [ "path", "lime-tools" ]);
+		var process = new Process (command, [ "path", "aether" ]);
 		var path = "";
 		var lines = new Array <String> ();
 		
@@ -661,7 +667,7 @@ class CommandLineTools {
 				var length = lines.length;
 				var line = process.stdout.readLine ();
 				
-				if (length > 0 && StringTools.trim (line) == "-D lime-tools") {
+				if (length > 0 && StringTools.trim (line) == "-D aether") {
 					
 					path = StringTools.trim (lines[length - 1]);
 					
@@ -753,7 +759,7 @@ class CommandLineTools {
 	
 	private function initializeProject ():HXProject {
 		
-		LogHelper.info ("", "\x1b[32;1mInitializing project...\x1b[0m");
+		LogHelper.info ("", "\x1b[36;1mInitializing project...\x1b[0m");
 		
 		var projectFile = "";
 		var targetName = "";
@@ -790,7 +796,7 @@ class CommandLineTools {
 			
 		} else {
 			
-			LogHelper.info ("", "\x1b[32;1mUsing project file: " + projectFile + "\x1b[0m");
+			LogHelper.info ("", "\x1b[36;1mUsing project file: " + projectFile + "\x1b[0m");
 			
 		}
 		
@@ -1268,7 +1274,7 @@ class CommandLineTools {
 	
 	private function platformSetup ():Void {
 		
-		LogHelper.info ("", "\x1b[32;1mRunning command: SETUP\x1b[0m");
+		LogHelper.info ("", "\x1b[36;1mRunning command: SETUP\x1b[0m");
 		
 		if (words.length == 0) {
 			
@@ -1297,9 +1303,9 @@ class CommandLineTools {
 			
 		}
 		
-		LogHelper.info ("", "\x1b[32;1mRunning command: " + command.toUpperCase () + "\x1b[0m");
+		LogHelper.info ("", "\x1b[36;1mRunning command: " + command.toUpperCase () + "\x1b[0m");
 		
-		var name = "lime";
+		var name = "aether";
 		
 		if (words.length > 0) {
 			
