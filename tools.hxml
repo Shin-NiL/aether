@@ -1,5 +1,5 @@
 -main CommandLineTools
--neko run.n
+-neko tools.n
 -cp src
 -lib lime
 -lib format
