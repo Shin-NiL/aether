@@ -5,14 +5,14 @@ package helpers;
 //import openfl.display.BitmapData;
 //import openfl.display.Shape;
 //import openfl.geom.Matrix;
-import lime.graphics.ImageData;
+import lime.graphics.Image;
 //import format.SVG;
 
 
 class ImageHelper {
 	
 	
-	public static function rasterizeSVG (svg:Dynamic /*SVG*/, width:Int, height:Int, backgroundColor:Int = null):ImageData {
+	public static function rasterizeSVG (svg:Dynamic /*SVG*/, width:Int, height:Int, backgroundColor:Int = null):Image {
 		
 		/*if (backgroundColor == null) {
 			
@@ -32,7 +32,7 @@ class ImageHelper {
 	}
 	
 	
-	public static function resizeImageData (imageData:ImageData, width:Int, height:Int):ImageData {
+	public static function resizeImage (image:Image, width:Int, height:Int):Image {
 		
 		/*
 		if (bitmapData.width == width && bitmapData.height == height) {
@@ -48,7 +48,7 @@ class ImageHelper {
 		data.draw (bitmapData, matrix, null, null, null, true);
 		
 		return data;*/
-		return imageData;
+		return image;
 		
 	}
 	

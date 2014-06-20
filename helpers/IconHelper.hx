@@ -13,7 +13,7 @@ import haxe.io.Path;
 import helpers.FileHelper;
 import helpers.ImageHelper;
 import helpers.LogHelper;
-import lime.graphics.ImageData;
+import lime.graphics.Image;
 import lime.utils.ByteArray;
 import project.Icon;
 import sys.io.File;
@@ -326,7 +326,7 @@ class IconHelper {
 	}
 	
 	
-	private static function getIconImage (icons:Array <Icon>, width:Int, height:Int, backgroundColor:Int = null):ImageData {
+	private static function getIconImage (icons:Array <Icon>, width:Int, height:Int, backgroundColor:Int = null):Image {
 		
 		return null;
 		

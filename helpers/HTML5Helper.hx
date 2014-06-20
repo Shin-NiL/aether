@@ -122,7 +122,7 @@ class HTML5Helper {
 			
 			Thread.create (function () { 
 				
-				Sys.sleep (0.3);
+				Sys.sleep (0.5);
 				ProcessHelper.openURL ("http://localhost:" + port);
 				
 			});
