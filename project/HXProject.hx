@@ -690,7 +690,7 @@ class HXProject {
 				
 			}*/
 			
-			var path = PathHelper.getHaxelib (haxelib);
+			var path = PathHelper.getHaxelib (haxelib, true);
 			project.sources.push (path);
 			
 			var includeProject = HXProject.fromHaxelib (haxelib, userDefines);
