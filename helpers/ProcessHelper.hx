@@ -109,15 +109,19 @@ class ProcessHelper {
 			
 			var message = command;
 			
-			for (arg in args) {
+			if (args != null) {
 				
-				if (arg.indexOf (" ") > -1) {
+				for (arg in args) {
 					
-					message += " \"" + arg + "\"";
-					
-				} else {
-					
-					message += " " + arg;
+					if (arg.indexOf (" ") > -1) {
+						
+						message += " \"" + arg + "\"";
+						
+					} else {
+						
+						message += " " + arg;
+						
+					}
 					
 				}
 				
@@ -127,7 +131,11 @@ class ProcessHelper {
 			
 		}
 		
-		command = PathHelper.escape (command);
+		if (args != null) {
+			
+			command = PathHelper.escape (command);
+			
+		}
 		
 		if (safeExecute) {
 			
@@ -179,15 +187,19 @@ class ProcessHelper {
 		
 		var argString = "";
 		
-		for (arg in args) {
+		if (args != null) {
 			
-			if (arg.indexOf (" ") > -1) {
+			for (arg in args) {
 				
-				argString += " \"" + arg + "\"";
-				
-			} else {
-				
-				argString += " " + arg;
+				if (arg.indexOf (" ") > -1) {
+					
+					argString += " \"" + arg + "\"";
+					
+				} else {
+					
+					argString += " " + arg;
+					
+				}
 				
 			}
 			

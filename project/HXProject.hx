@@ -375,7 +375,7 @@ class HXProject {
 	
 	public static function fromFile (projectFile:String, userDefines:Map <String, Dynamic> = null, includePaths:Array <String> = null):HXProject {
 		
-		var project = null;
+		var project:HXProject = null;
 		
 		var path = FileSystem.fullPath (Path.withoutDirectory (projectFile));
 		var name = Path.withoutDirectory (Path.withoutExtension (projectFile));
@@ -387,9 +387,10 @@ class HXProject {
 		
 		FileHelper.copyFile (path, classFile);
 		
-		ProcessHelper.runCommand (tempDirectory, "haxe", [ name, "-main", "project.HXProject", "-cp", path, "-cp", ".", "-neko", nekoOutput, "-lib", "aether", "-lib", "lime" ]);
+		ProcessHelper.runCommand (tempDirectory, "haxe \"" + name + "\" -main project.HXProject -cp \"" + Path.directory (path) + "\" -cp . -neko \"" + nekoOutput + "\" -lib aether -lib lime", null);
 		
 		var process = new Process ("neko", [ FileSystem.fullPath (nekoOutput), name, HXProject._command, Std.string (HXProject._debug), Std.string (HXProject._target), Serializer.run (HXProject._targetFlags), Serializer.run (HXProject._templatePaths) ]);
+		
 		var output = process.stdout.readAll ().toString ();
 		var error = process.stderr.readAll ().toString ();
 		process.exitCode ();
