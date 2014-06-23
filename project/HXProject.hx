@@ -681,7 +681,10 @@ class HXProject {
 	
 	@:noCompletion private static function processHaxelibs (project:HXProject, userDefines:Map <String, Dynamic>):Void {
 		
-		for (haxelib in project.haxelibs) {
+		var haxelibs = project.haxelibs.copy ();
+		project.haxelibs = [];
+		
+		for (haxelib in haxelibs) {
 					
 			/*if (haxelib.name == "nme" && userDefines.exists ("openfl")) {
 				
@@ -690,8 +693,7 @@ class HXProject {
 				
 			}*/
 			
-			var path = PathHelper.getHaxelib (haxelib, true);
-			project.sources.push (path);
+			project.haxelibs.push (haxelib);
 			
 			var includeProject = HXProject.fromHaxelib (haxelib, userDefines);
 			
@@ -707,7 +709,6 @@ class HXProject {
 					
 				}
 				
-				processHaxelibs (includeProject, userDefines);
 				project.merge (includeProject);
 				
 			}
