@@ -75,22 +75,28 @@ class HXProject {
 		
 		var args = Sys.args ();
 		
-		if (args.length > 1) {
+		if (args.length < 7) {
 			
-			HXProject._command = args[1];
-			HXProject._debug = (args[2] == "true");
-			HXProject._target = Type.createEnum (Platform, args[3]);
-			HXProject._targetFlags = Unserializer.run (args[4]);
-			HXProject._templatePaths = Unserializer.run (args[5]);
+			return;
 			
 		}
 		
+		HXProject._command = args[0];
+		HXProject._target = Type.createEnum (Platform, args[2]);
+		HXProject._debug = (args[3] == "true");
+		HXProject._targetFlags = Unserializer.run (args[4]);
+		HXProject._templatePaths = Unserializer.run (args[5]);
+		
 		initialize ();
 		
-		var classRef = Type.resolveClass (args[0]);
+		var classRef = Type.resolveClass (args[1]);
 		var instance = Type.createInstance (classRef, []);
 		
-		Sys.print (Serializer.run (instance));
+		var serializer = new Serializer ();
+		serializer.useCache = true;
+		serializer.serialize (instance);
+		
+		File.saveContent (args[6], serializer.toString ());
 		
 	}
 	
@@ -384,23 +390,25 @@ class HXProject {
 		var tempDirectory = PathHelper.getTemporaryDirectory ();
 		var classFile = PathHelper.combine (tempDirectory, name + ".hx");
 		var nekoOutput = PathHelper.combine (tempDirectory, name + ".n");
+		var temporaryFile = PathHelper.combine (tempDirectory, "output.dat");
 		
 		FileHelper.copyFile (path, classFile);
 		
 		ProcessHelper.runCommand (tempDirectory, "haxe \"" + name + "\" -main project.HXProject -cp \"" + Path.directory (path) + "\" -cp . -neko \"" + nekoOutput + "\" -lib aether -lib lime", null);
-		
-		var process = new Process ("neko", [ FileSystem.fullPath (nekoOutput), name, HXProject._command, Std.string (HXProject._debug), Std.string (HXProject._target), Serializer.run (HXProject._targetFlags), Serializer.run (HXProject._templatePaths) ]);
-		
-		var output = process.stdout.readAll ().toString ();
-		var error = process.stderr.readAll ().toString ();
-		process.exitCode ();
-		process.close ();
+		ProcessHelper.runCommand ("", "neko", [ FileSystem.fullPath (nekoOutput), HXProject._command, name, Std.string (HXProject._target), Std.string (HXProject._debug), Serializer.run (HXProject._targetFlags), Serializer.run (HXProject._templatePaths), temporaryFile ]);
 		
 		try {
 			
-			var unserializer = new Unserializer (output);
-			unserializer.setResolver (cast { resolveEnum: Type.resolveEnum, resolveClass: resolveClass });
-			project = unserializer.unserialize ();
+			var outputPath = PathHelper.combine (tempDirectory, "output.dat");
+		
+			if (FileSystem.exists (outputPath)) {
+				
+				var output = File.getContent (outputPath);
+				var unserializer = new Unserializer (output);
+				unserializer.setResolver (cast { resolveEnum: Type.resolveEnum, resolveClass: resolveClass });
+				project = unserializer.unserialize ();
+				
+			}
 			
 		} catch (e:Dynamic) {}
 		
@@ -683,6 +691,8 @@ class HXProject {
 			}*/
 			
 			var path = PathHelper.getHaxelib (haxelib);
+			project.sources.push (path);
+			
 			var includeProject = HXProject.fromHaxelib (haxelib, userDefines);
 			
 			if (includeProject != null) {
@@ -697,14 +707,8 @@ class HXProject {
 					
 				}
 				
-				includeProject.sources.push (path);
 				processHaxelibs (includeProject, userDefines);
-				
 				project.merge (includeProject);
-				
-			} else {
-				
-				project.sources.push (path);
 				
 			}
 			
