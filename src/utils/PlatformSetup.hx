@@ -382,7 +382,7 @@ class PlatformSetup {
 			
 		}
 		
-		ProcessHelper.runCommand (Sys.getEnv ("HAXEPATH"), "haxelib", [ "install", name ]);
+		ProcessHelper.runCommand ("", "haxelib", [ "install", name ]);
 		
 	}
 	
@@ -1626,7 +1626,7 @@ class PlatformSetup {
 		var defines = new Map <String, Dynamic> ();
 		defines.set ("setup", 1);
 		
-		var basePath = ProcessHelper.runProcess (Sys.getEnv ("HAXEPATH"), "haxelib", [ "config" ]);
+		var basePath = ProcessHelper.runProcess ("", "haxelib", [ "config" ]);
 		if (basePath != null) {
 			
 			basePath = StringTools.trim (basePath.split ("\n")[0]);
@@ -2052,7 +2052,7 @@ class PlatformSetup {
 	
 	public static function updateHaxelib (haxelib:Haxelib):Void {
 		
-		var basePath = ProcessHelper.runProcess (Sys.getEnv ("HAXEPATH"), "haxelib", [ "config" ]);
+		var basePath = ProcessHelper.runProcess ("", "haxelib", [ "config" ]);
 		if (basePath != null) {
 			
 			basePath = StringTools.trim (basePath.split ("\n")[0]);
@@ -2063,7 +2063,7 @@ class PlatformSetup {
 		
 		if (StringTools.startsWith (PathHelper.standardize (lib), PathHelper.standardize (basePath))) {
 			
-			ProcessHelper.runCommand (Sys.getEnv ("HAXEPATH"), "haxelib", [ "update", haxelib.name ]);
+			ProcessHelper.runCommand ("", "haxelib", [ "update", haxelib.name ]);
 			
 		} else {
 			
