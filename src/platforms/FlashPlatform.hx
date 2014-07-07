@@ -183,21 +183,20 @@ class FlashPlatform implements IPlatformTool {
 			PathHelper.mkdir (destination);
 			FileHelper.recursiveCopyTemplate (project.templatePaths, "flash/templates/web", destination, generateContext (project));
 
-			for (asset in project.assets) {
-				
-				if (asset.type == AssetType.TEMPLATE || asset.embed == false || !usesNME) {
-					
-					var path = PathHelper.combine (destination, asset.targetPath);
-					
-					PathHelper.mkdir (Path.directory (path));
-					FileHelper.copyAsset (asset, path, context);
-					
-				}
-				
-			}
-
 		}
 		
+		for (asset in project.assets) {
+				
+			if (asset.type == AssetType.TEMPLATE || asset.embed == false || !usesNME) {
+				
+				var path = PathHelper.combine (destination, asset.targetPath);
+				
+				PathHelper.mkdir (Path.directory (path));
+				FileHelper.copyAsset (asset, path, context);
+				
+			}
+			
+		}
 		
 	}
 	
