@@ -521,7 +521,7 @@ class CommandLineTools {
 			var sourcePath = words[0];
 			var glyphs = "32-255";
 			
-			ProcessHelper.runCommand (Path.directory (sourcePath), "neko", [ PathHelper.getHaxelib (new Haxelib ("lime-tools")) + "/templates/bin/hxswfml.n", "ttf2hash2", Path.withoutDirectory (sourcePath), Path.withoutDirectory (sourcePath) + ".hash", "-glyphs", glyphs ]);
+			ProcessHelper.runCommand (Path.directory (sourcePath), "neko", [ PathHelper.getHaxelib (new Haxelib ("aether")) + "/templates/bin/hxswfml.n", "ttf2hash2", Path.withoutDirectory (sourcePath), Path.withoutDirectory (sourcePath) + ".hash", "-glyphs", glyphs ]);
 			
 		} else if (targetFlags.exists ("font-details")) {
 			
@@ -653,7 +653,7 @@ class CommandLineTools {
 	#if (neko && (haxe_210 || haxe3))
 	public static function __init__ () {
 		
-		var process = new Process ("haxelib", [ "path", "lime-tools" ]);
+		var process = new Process ("haxelib", [ "path", "aether" ]);
 		var path = "";
 		var lines = new Array <String> ();
 		

@@ -1,6 +1,6 @@
-lime-tools
+aether
 ==========
-[![Build Status](https://travis-ci.org/openfl/lime-tools.png)](https://travis-ci.org/openfl/lime-tools)
+[![Build Status](https://travis-ci.org/openfl/aether.png)](https://travis-ci.org/openfl/aether)
 
 Install
 -------
@@ -13,14 +13,14 @@ Development Build
 
     haxelib install format
     haxelib install svg
-    git clone https://github.com/openfl/lime-tools
-    haxelib dev lime-tools lime-tools
+    git clone https://github.com/openfl/aether
+    haxelib dev aether aether
 
 To rebuild the tools, use:
 
-    lime rebuild tools
+    aether rebuild tools
 
 To return to release builds:
 
-    haxelib dev lime-tools
+    haxelib dev aether
 
