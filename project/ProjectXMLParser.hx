@@ -112,7 +112,7 @@ class ProjectXMLParser extends HXProject {
 			
 		}
 		
-		defines.set (Type.enumConstructor (target).toLowerCase (), "1");
+		defines.set (Std.string (target).toLowerCase (), "1");
 		
 	}
 	
@@ -1206,6 +1206,18 @@ class ProjectXMLParser extends HXProject {
 					case "sample":
 						
 						samplePaths.push (PathHelper.combine (extensionPath, substitute (element.att.path)));
+					
+					case "target":
+						
+						if (element.has.handler) {
+							
+							if (element.has.name) {
+								
+								targetHandlers.set (substitute (element.att.name), substitute (element.att.handler));
+								
+							}
+							
+						}
 					
 					case "template":
 						

@@ -53,6 +53,7 @@ class HXProject {
 	public var splashScreens:Array <SplashScreen>;
 	public var target:Platform;
 	public var targetFlags:Map <String, String>;
+	public var targetHandlers:Map <String, String>;
 	public var templateContext (get_templateContext, null):Dynamic;
 	public var templatePaths:Array <String>;
 	@:isVar public var window (get, set):Window;
@@ -82,7 +83,7 @@ class HXProject {
 		}
 		
 		HXProject._command = args[0];
-		HXProject._target = Type.createEnum (Platform, args[2]);
+		HXProject._target = cast args[2];
 		HXProject._debug = (args[3] == "true");
 		HXProject._targetFlags = Unserializer.run (args[4]);
 		HXProject._templatePaths = Unserializer.run (args[5]);
@@ -116,6 +117,9 @@ class HXProject {
 		defaultMeta = { title: "MyApplication", description: "", packageName: "com.example.myapp", version: "1.0.0", company: "Example, Inc.", companyURL: "", buildNumber: "1", companyID: "" }
 		defaultApp = { main: "Main", file: "MyApplication", path: "bin", preloader: "", swfVersion: 11.2, url: "" }
 		defaultWindow = { width: 800, height: 600, parameters: "{}", background: 0xFFFFFF, fps: 30, hardware: true, display: 0, resizable: true, borderless: false, orientation: Orientation.AUTO, vsync: false, fullscreen: false, antialiasing: 0, allowShaders: true, requireShaders: false, depthBuffer: false, stencilBuffer: false }
+		
+		platformType = PlatformType.DESKTOP;
+		architectures = [];
 		
 		switch (target) {
 			
@@ -200,6 +204,7 @@ class HXProject {
 		sources = new Array <String> ();
 		samplePaths = new Array <String> ();
 		splashScreens = new Array <SplashScreen> ();
+		targetHandlers = new Map <String, String> ();
 		
 	}
 	
@@ -304,6 +309,12 @@ class HXProject {
 		for (key in targetFlags.keys ()) {
 			
 			project.targetFlags.set (key, targetFlags.get (key));
+			
+		}
+		
+		for (key in targetHandlers.keys ()) {
+			
+			project.targetHandlers.set (key, targetHandlers.get (key));
 			
 		}
 		
@@ -630,6 +641,7 @@ class HXProject {
 			StringMapHelper.copyUniqueKeys (project.environment, environment);
 			StringMapHelper.copyUniqueKeys (project.haxedefs, haxedefs);
 			StringMapHelper.copyUniqueKeys (project.libraryHandlers, libraryHandlers);
+			StringMapHelper.copyUniqueKeys (project.targetHandlers, targetHandlers);
 			
 			if (certificate == null) {
 				

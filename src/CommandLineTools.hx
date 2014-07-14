@@ -123,116 +123,150 @@ class CommandLineTools {
 	private function buildProject () {
 		
 		var project = initializeProject ();
-		var platform:IPlatformTool = null;
+		var command = project.command.toLowerCase ();
 		
-		LogHelper.info ("", "\x1b[36;1mUsing target platform: " + project.target + "\x1b[0m");
-		
-		switch (project.target) {
+		if (command == "update" || command == "build" || command == "test") {
 			
-			case ANDROID:
-				
-				platform = new AndroidPlatform ();
-				
-			case BLACKBERRY:
-				
-				platform = new BlackBerryPlatform ();
-			
-			case IOS:
-				
-				platform = new IOSPlatform ();
-			
-			case TIZEN:
-				
-				platform = new TizenPlatform ();
-			
-			case WEBOS:
-				
-				platform = new WebOSPlatform ();
-			
-			case WINDOWS:
-				
-				platform = new WindowsPlatform ();
-			
-			case MAC:
-				
-				platform = new MacPlatform ();
-			
-			case LINUX:
-				
-				platform = new LinuxPlatform ();
-			
-			case FLASH:
-				
-				platform = new FlashPlatform ();
-			
-			case HTML5:
-				
-				platform = new HTML5Platform ();
-			
-			case FIREFOXOS:
-				
-				platform = new FirefoxOSPlatform ();
-			
-			case EMSCRIPTEN:
-				
-				platform = new EmscriptenPlatform ();
+			AssetHelper.processLibraries (project);
 			
 		}
 		
-		var metaFields = Meta.getFields (Type.getClass (platform));
-		
-		if (platform != null) {
+		if (project.targetHandlers.exists (Std.string (project.target))) {
 			
-			var command = project.command.toLowerCase ();
+			LogHelper.info ("", "\x1b[36;1mUsing target platform: " + Std.string (project.target).toUpperCase () + "\x1b[0m");
 			
-			if (!Reflect.hasField (metaFields.display, "ignore") && (command == "display")) {
-				
-				platform.display (project);
-				
-			}
+			var handler = project.targetHandlers.get (Std.string (project.target));
+			var projectData = Serializer.run (project);
+			var temporaryFile = PathHelper.getTemporaryFile ();
+			File.saveContent (temporaryFile, projectData);
 			
-			if (!Reflect.hasField (metaFields.clean, "ignore") && (command == "clean" || targetFlags.exists ("clean"))) {
-				
-				LogHelper.info ("", "\n\x1b[36;1mRunning command: CLEAN\x1b[0m");
-				platform.clean (project);
-				
-			}
+			ProcessHelper.runCommand ("", "haxelib", [ "run", handler, command, temporaryFile ]);
 			
-			if (!Reflect.hasField (metaFields.update, "ignore") && (command == "update" || command == "build" || command == "test")) {
+			try {
 				
-				LogHelper.info ("", "\n\x1b[36;1mRunning command: UPDATE\x1b[0m");
-				AssetHelper.processLibraries (project);
-				platform.update (project);
+				FileSystem.deleteFile (temporaryFile);
 				
-			}
+			} catch (e:Dynamic) {}
 			
-			if (!Reflect.hasField (metaFields.build, "ignore") && (command == "build" || command == "test")) {
-				
-				LogHelper.info ("", "\n\x1b[36;1mRunning command: BUILD\x1b[0m");
-				platform.build (project);
-				
-			}
+		} else {
 			
-			if (!Reflect.hasField (metaFields.install, "ignore") && (command == "install" || command == "run" || command == "test")) {
+			var platform:IPlatformTool = null;
+			
+			switch (project.target) {
 				
-				LogHelper.info ("", "\n\x1b[36;1mRunning command: INSTALL\x1b[0m");
-				platform.install (project);
-				
-			}
-		
-			if (!Reflect.hasField (metaFields.run, "ignore") && (command == "run" || command == "rerun" || command == "test")) {
-				
-				LogHelper.info ("", "\n\x1b[36;1mRunning command: RUN\x1b[0m");
-				platform.run (project, additionalArguments);
-				
-			}
-		
-			if (!Reflect.hasField (metaFields.trace, "ignore") && (command == "test" || command == "trace")) {
-				
-				if (traceEnabled || command == "trace") {
+				case ANDROID:
 					
-					LogHelper.info ("", "\n\x1b[36;1mRunning command: TRACE\x1b[0m");
-					platform.trace (project);
+					platform = new AndroidPlatform ();
+					
+				case BLACKBERRY:
+					
+					platform = new BlackBerryPlatform ();
+				
+				case IOS:
+					
+					platform = new IOSPlatform ();
+				
+				case TIZEN:
+					
+					platform = new TizenPlatform ();
+				
+				case WEBOS:
+					
+					platform = new WebOSPlatform ();
+				
+				case WINDOWS:
+					
+					platform = new WindowsPlatform ();
+				
+				case MAC:
+					
+					platform = new MacPlatform ();
+				
+				case LINUX:
+					
+					platform = new LinuxPlatform ();
+				
+				case FLASH:
+					
+					platform = new FlashPlatform ();
+				
+				case HTML5:
+					
+					platform = new HTML5Platform ();
+				
+				case FIREFOXOS:
+					
+					platform = new FirefoxOSPlatform ();
+				
+				case EMSCRIPTEN:
+					
+					platform = new EmscriptenPlatform ();
+				
+			}
+			
+			if (platform == null) {
+				
+				LogHelper.error ("\"" + Std.string (project.target) + "\" is an unknown target");
+				
+			} else {
+				
+				LogHelper.info ("", "\x1b[36;1mUsing target platform: " + Std.string (project.target).toUpperCase () + "\x1b[0m");
+				
+			}
+			
+			var metaFields = Meta.getFields (Type.getClass (platform));
+			
+			if (platform != null) {
+				
+				if (!Reflect.hasField (metaFields.display, "ignore") && (command == "display")) {
+					
+					platform.display (project);
+					
+				}
+				
+				if (!Reflect.hasField (metaFields.clean, "ignore") && (command == "clean" || targetFlags.exists ("clean"))) {
+					
+					LogHelper.info ("", "\n\x1b[36;1mRunning command: CLEAN\x1b[0m");
+					platform.clean (project);
+					
+				}
+				
+				if (!Reflect.hasField (metaFields.update, "ignore") && (command == "update" || command == "build" || command == "test")) {
+					
+					LogHelper.info ("", "\n\x1b[36;1mRunning command: UPDATE\x1b[0m");
+					platform.update (project);
+					
+				}
+				
+				if (!Reflect.hasField (metaFields.build, "ignore") && (command == "build" || command == "test")) {
+					
+					LogHelper.info ("", "\n\x1b[36;1mRunning command: BUILD\x1b[0m");
+					platform.build (project);
+					
+				}
+				
+				if (!Reflect.hasField (metaFields.install, "ignore") && (command == "install" || command == "run" || command == "test")) {
+					
+					LogHelper.info ("", "\n\x1b[36;1mRunning command: INSTALL\x1b[0m");
+					platform.install (project);
+					
+				}
+			
+				if (!Reflect.hasField (metaFields.run, "ignore") && (command == "run" || command == "rerun" || command == "test")) {
+					
+					LogHelper.info ("", "\n\x1b[36;1mRunning command: RUN\x1b[0m");
+					platform.run (project, additionalArguments);
+					
+				}
+			
+				if (!Reflect.hasField (metaFields.trace, "ignore") && (command == "test" || command == "trace")) {
+					
+					if (traceEnabled || command == "trace") {
+						
+						LogHelper.info ("", "\n\x1b[36;1mRunning command: TRACE\x1b[0m");
+						platform.trace (project);
+						
+					}
 					
 				}
 				
@@ -822,15 +856,7 @@ class CommandLineTools {
 			
 			default:
 				
-				try {
-					
-					target = Type.createEnum (Platform, targetName.toUpperCase ());
-					
-				} catch (e:Dynamic) {
-					
-					LogHelper.error ("\"" + targetName + "\" is an unknown target");
-					
-				}
+				target = cast targetName.toLowerCase ();
 			
 		}
 		

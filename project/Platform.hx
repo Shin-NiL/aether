@@ -1,19 +1,19 @@
 package project;
 
 
-enum Platform {
+@:enum abstract Platform(String) {
 	
-	ANDROID;
-	BLACKBERRY;
-	FIREFOXOS;
-	FLASH;
-	HTML5;
-	IOS;
-	LINUX;
-	MAC;
-	TIZEN;
-	WINDOWS;
-	WEBOS;
-	EMSCRIPTEN;
+	var ANDROID = "android";
+	var BLACKBERRY = "blackberry";
+	var FIREFOXOS = "firefoxos";
+	var FLASH = "flash";
+	var HTML5 = "html5";
+	var IOS = "ios";
+	var LINUX = "linux";
+	var MAC = "mac";
+	var TIZEN = "tizen";
+	var WINDOWS = "windows";
+	var WEBOS = "webos";
+	var EMSCRIPTEN = "emscripten";
 
 }
