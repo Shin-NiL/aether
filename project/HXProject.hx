@@ -919,7 +919,7 @@ class HXProject {
 						
 						if (compilerFlags.indexOf ("-cp " + arg) == -1) {
 							
-							compilerFlags.push ("-cp " + arg);
+							compilerFlags.push ("-cp " + PathHelper.standardize (arg));
 							
 						}
 						
