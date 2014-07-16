@@ -35,7 +35,8 @@ class PlatformTarget {
 			
 		}
 		
-		if (!Reflect.hasField (metaFields.clean, "ignore") && (command == "clean" || targetFlags.exists ("clean"))) {
+		//if (!Reflect.hasField (metaFields.clean, "ignore") && (command == "clean" || targetFlags.exists ("clean"))) {
+		if (!Reflect.hasField (metaFields.clean, "ignore") && (command == "clean" || project.targetFlags.exists ("clean"))) {
 			
 			LogHelper.info ("", "\n\x1b[36;1mRunning command: CLEAN\x1b[0m");
 			clean ();
