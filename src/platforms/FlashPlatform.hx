@@ -9,13 +9,22 @@ import helpers.PathHelper;
 import helpers.ProcessHelper;
 import project.AssetType;
 import project.HXProject;
+import project.PlatformTarget;
 import sys.io.File;
 import sys.FileSystem;
 
-class FlashPlatform implements IPlatformTool {
+
+class FlashPlatform extends PlatformTarget {
 	
 	
-	public function build (project:HXProject):Void {
+	public function new (command:String, _project:HXProject, targetFlags:Map <String, String>) {
+		
+		super (command, _project, targetFlags);
+		
+	}
+	
+	
+	public override function build ():Void {
 		
 		var destination = project.app.path + "/flash/bin";
 		
@@ -56,7 +65,7 @@ class FlashPlatform implements IPlatformTool {
 	}
 	
 	
-	public function clean (project:HXProject):Void {
+	public override function clean ():Void {
 		
 		var targetPath = project.app.path + "/flash";
 		
@@ -69,7 +78,7 @@ class FlashPlatform implements IPlatformTool {
 	}
 	
 	
-	public function display (project:HXProject):Void {
+	public override function display ():Void {
 		
 		var type = "release";
 		
@@ -94,7 +103,7 @@ class FlashPlatform implements IPlatformTool {
 	}
 	
 	
-	private function generateContext (project:HXProject):Dynamic {
+	private function generateContext ():Dynamic {
 		
 		project = project.clone ();
 		
@@ -129,7 +138,7 @@ class FlashPlatform implements IPlatformTool {
 	}
 	
 	
-	public function run (project:HXProject, arguments:Array <String>):Void {
+	public override function run ():Void {
 		
 		if (project.app.url != null && project.app.url != "") {
 			
@@ -153,12 +162,12 @@ class FlashPlatform implements IPlatformTool {
 	}
 	
 	
-	public function update (project:HXProject):Void {
+	public override function update ():Void {
 		
 		var destination = project.app.path + "/flash/bin/";
 		PathHelper.mkdir (destination);
 		
-		var context = generateContext (project);
+		var context = generateContext ();
 		
 		FileHelper.recursiveCopyTemplate (project.templatePaths, "haxe", project.app.path + "/flash/haxe", context);
 		FileHelper.recursiveCopyTemplate (project.templatePaths, "flash/hxml", project.app.path + "/flash/haxe", context);
@@ -181,7 +190,7 @@ class FlashPlatform implements IPlatformTool {
 		if (project.targetFlags.exists ("web") || project.app.url != "") {
 			
 			PathHelper.mkdir (destination);
-			FileHelper.recursiveCopyTemplate (project.templatePaths, "flash/templates/web", destination, generateContext (project));
+			FileHelper.recursiveCopyTemplate (project.templatePaths, "flash/templates/web", destination, generateContext ());
 
 		}
 		
@@ -218,11 +227,9 @@ class FlashPlatform implements IPlatformTool {
 	}*/
 	
 	
-	public function new () {}
-	@ignore public function install (project:HXProject):Void { }
-	@ignore public function trace (project:HXProject):Void { }
-	@ignore public function uninstall (project:HXProject):Void { }
-	
+	@ignore public override function install ():Void {}
+	@ignore public override function trace ():Void {}
+	@ignore public override function uninstall ():Void {}
 	
 	
 }

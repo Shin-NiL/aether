@@ -16,19 +16,51 @@ import project.AssetType;
 import project.Haxelib;
 import project.HXProject;
 import project.NDLL;
+import project.PlatformTarget;
 import sys.io.File;
 import sys.FileSystem;
 
-class BlackBerryPlatform implements IPlatformTool {
+class BlackBerryPlatform extends PlatformTarget {
 	
 	
 	private var outputDirectory:String;
 	private var outputFile:String;
 	
 	
-	public function build (project:HXProject):Void {
+	public function new (command:String, _project:HXProject, targetFlags:Map <String, String>) {
 		
-		initialize (project);
+		super (command, _project, targetFlags);
+		
+		if (command != "display" && command != "clean") {
+			
+			project = project.clone ();
+			
+			if (!project.environment.exists ("BLACKBERRY_SETUP")) {
+				
+				LogHelper.error ("You need to run \"lime setup blackberry\" before you can use the BlackBerry target");
+				
+			}
+			
+			if (!project.targetFlags.exists ("html5")) {
+				
+				outputDirectory = project.app.path + "/blackberry/cpp";
+				outputFile = outputDirectory + "/bin/" + PathHelper.safeFileName (project.app.file);
+				
+			} else {
+				
+				outputDirectory = project.app.path + "/blackberry/html5";
+				outputFile = outputDirectory + "/src/" + project.app.file + ".js";
+				
+			}
+			
+			BlackBerryHelper.initialize (project);
+			
+		}
+		
+	}
+	
+	
+	public override function build ():Void {
 		
 		if (project.app.main != null) {
 			
@@ -120,9 +152,7 @@ class BlackBerryPlatform implements IPlatformTool {
 	}
 	
 	
-	public function clean (project:HXProject):Void {
-		
-		initialize (project);
+	public override function clean ():Void {
 		
 		if (FileSystem.exists (outputDirectory)) {
 			
@@ -133,7 +163,7 @@ class BlackBerryPlatform implements IPlatformTool {
 	}
 	
 	
-	public function display (project:HXProject):Void {
+	public override function display ():Void {
 		
 		var hxml = "";
 		var context = project.templateContext;
@@ -171,34 +201,7 @@ class BlackBerryPlatform implements IPlatformTool {
 	}
 	
 	
-	private function initialize (project:HXProject):Void {
-		
-		if (!project.environment.exists ("BLACKBERRY_SETUP")) {
-			
-			LogHelper.error ("You need to run \"lime setup blackberry\" before you can use the BlackBerry target");
-			
-		}
-		
-		if (!project.targetFlags.exists ("html5")) {
-			
-			outputDirectory = project.app.path + "/blackberry/cpp";
-			outputFile = outputDirectory + "/bin/" + PathHelper.safeFileName (project.app.file);
-			
-		} else {
-			
-			outputDirectory = project.app.path + "/blackberry/html5";
-			outputFile = outputDirectory + "/src/" + project.app.file + ".js";
-			
-		}
-		
-		BlackBerryHelper.initialize (project);
-		
-	}
-	
-	
-	public function run (project:HXProject, arguments:Array <String>):Void {
-		
-		initialize (project);
+	public override function run ():Void {
 		
 		if (!project.targetFlags.exists ("html5")) {
 			
@@ -213,9 +216,7 @@ class BlackBerryPlatform implements IPlatformTool {
 	}
 	
 	
-	public function trace (project:HXProject):Void {
-		
-		initialize (project);
+	public override function trace ():Void {
 		
 		if (!project.targetFlags.exists ("html5")) {
 			
@@ -230,10 +231,10 @@ class BlackBerryPlatform implements IPlatformTool {
 	}
 	
 	
-	public function update (project:HXProject):Void {
+	public override function update ():Void {
 		
-		project = project.clone ();
-		initialize (project);
+		//project = project.clone ();
+		//initialize (project);
 		
 		if (!project.targetFlags.exists ("html5")) {
 			
@@ -328,7 +329,6 @@ class BlackBerryPlatform implements IPlatformTool {
 			
 		}
 		
-		
 		for (asset in project.assets) {
 			
 			PathHelper.mkdir (Path.directory (destination + asset.targetPath));
@@ -354,9 +354,8 @@ class BlackBerryPlatform implements IPlatformTool {
 	}
 	
 	
-	public function new () {}
-	@ignore public function install (project:HXProject):Void {}
-	@ignore public function uninstall (project:HXProject):Void {}
+	@ignore public override function install ():Void {}
+	@ignore public override function uninstall ():Void {}
 	
 	
 }

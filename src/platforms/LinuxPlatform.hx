@@ -14,12 +14,13 @@ import project.AssetType;
 import project.Architecture;
 import project.HXProject;
 import project.Platform;
+import project.PlatformTarget;
 import sys.io.File;
 import sys.io.Process;
 import sys.FileSystem;
 
 
-class LinuxPlatform implements IPlatformTool {
+class LinuxPlatform extends PlatformTarget {
 	
 	
 	private var applicationDirectory:String;
@@ -30,9 +31,56 @@ class LinuxPlatform implements IPlatformTool {
 	private var useNeko:Bool;
 	
 	
-	public function build (project:HXProject):Void {
+	public function new (command:String, _project:HXProject, targetFlags:Map <String, String> ) {
 		
-		initialize (project);
+		super (command, _project, targetFlags);
+		
+		for (architecture in project.architectures) {
+			
+			if (architecture == Architecture.X64) {
+				
+				is64 = true;
+				
+			}
+			
+		}
+		
+		if (project.targetFlags.exists ("rpi")) {
+			
+			isRaspberryPi = true;
+			is64 = true;
+			
+		} else if (PlatformHelper.hostPlatform == Platform.LINUX) {
+			
+			var process = new Process ("uname", [ "-a" ]);
+			var output = process.stdout.readAll ().toString ();
+			var error = process.stderr.readAll ().toString ();
+			process.exitCode ();
+			process.close ();
+			
+			if (output.toLowerCase ().indexOf ("raspberrypi") > -1) {
+				
+				isRaspberryPi = true;
+				is64 = true;
+				
+			}
+			
+		}
+		
+		if (project.targetFlags.exists ("neko") || project.target != PlatformHelper.hostPlatform) {
+			
+			useNeko = true;
+			
+		}
+		
+		targetDirectory = project.app.path + "/linux" + (is64 ? "64" : "") + (isRaspberryPi ? "-rpi" : "") + "/" + (useNeko ? "neko" : "cpp");
+		applicationDirectory = targetDirectory + "/bin/";
+		executablePath = PathHelper.combine (applicationDirectory, project.app.file);
+		
+	}
+	
+	
+	public override function build ():Void {
 		
 		var type = "release";
 		
@@ -96,9 +144,7 @@ class LinuxPlatform implements IPlatformTool {
 	}
 	
 	
-	public function clean (project:HXProject):Void {
-		
-		initialize (project);
+	public override function clean ():Void {
 		
 		if (FileSystem.exists (targetDirectory)) {
 			
@@ -109,9 +155,7 @@ class LinuxPlatform implements IPlatformTool {
 	}
 	
 	
-	public function display (project:HXProject):Void {
-		
-		initialize (project);
+	public override function display ():Void {
 		
 		var type = "release";
 		
@@ -127,12 +171,12 @@ class LinuxPlatform implements IPlatformTool {
 		
 		var hxml = PathHelper.findTemplate (project.templatePaths, (useNeko ? "neko" : "cpp") + "/hxml/" + type + ".hxml");
 		var template = new Template (File.getContent (hxml));
-		Sys.println (template.execute (generateContext (project)));
+		Sys.println (template.execute (generateContext ()));
 		
 	}
 	
 	
-	private function generateContext (project:HXProject):Dynamic {
+	private function generateContext ():Dynamic {
 		
 		var project = project.clone ();
 		
@@ -154,58 +198,12 @@ class LinuxPlatform implements IPlatformTool {
 	}
 	
 	
-	private function initialize (project:HXProject):Void {
+	public override function run ():Void {
 		
-		for (architecture in project.architectures) {
-			
-			if (architecture == Architecture.X64) {
-				
-				is64 = true;
-				
-			}
-			
-		}
-		
-		if (project.targetFlags.exists ("rpi")) {
-			
-			isRaspberryPi = true;
-			is64 = true;
-			
-		} else if (PlatformHelper.hostPlatform == Platform.LINUX) {
-			
-			var process = new Process ("uname", [ "-a" ]);
-			var output = process.stdout.readAll ().toString ();
-			var error = process.stderr.readAll ().toString ();
-			process.exitCode ();
-			process.close ();
-			
-			if (output.toLowerCase ().indexOf ("raspberrypi") > -1) {
-				
-				isRaspberryPi = true;
-				is64 = true;
-				
-			}
-			
-		}
-		
-		if (project.targetFlags.exists ("neko") || project.target != PlatformHelper.hostPlatform) {
-			
-			useNeko = true;
-			
-		}
-		
-		targetDirectory = project.app.path + "/linux" + (is64 ? "64" : "") + (isRaspberryPi ? "-rpi" : "") + "/" + (useNeko ? "neko" : "cpp");
-		applicationDirectory = targetDirectory + "/bin/";
-		executablePath = PathHelper.combine (applicationDirectory, project.app.file);
-		
-	}
-	
-	
-	public function run (project:HXProject, arguments:Array <String>):Void {
+		var arguments = [];
 		
 		if (project.target == PlatformHelper.hostPlatform) {
 			
-			initialize (project);
 			arguments = arguments.concat ([ "-livereload" ]);
 			ProcessHelper.runCommand (applicationDirectory, "./" + Path.withoutDirectory (executablePath), arguments);
 			
@@ -214,10 +212,10 @@ class LinuxPlatform implements IPlatformTool {
 	}
 	
 	
-	public function update (project:HXProject):Void {
+	public override function update ():Void {
 		
 		project = project.clone ();
-		initialize (project);
+		//initialize (project);
 		
 		if (project.targetFlags.exists ("xml")) {
 			
@@ -225,7 +223,7 @@ class LinuxPlatform implements IPlatformTool {
 			
 		}
 		
-		var context = generateContext (project);
+		var context = generateContext ();
 		
 		PathHelper.mkdir (targetDirectory);
 		PathHelper.mkdir (targetDirectory + "/obj");
@@ -261,13 +259,13 @@ class LinuxPlatform implements IPlatformTool {
 		}
 		
 		AssetHelper.createManifest (project, PathHelper.combine (applicationDirectory, "manifest"));
+		
 	}
 	
 	
-	public function new () {}
-	@ignore public function install (project:HXProject):Void {}
-	@ignore public function trace (project:HXProject):Void {}
-	@ignore public function uninstall (project:HXProject):Void {}
+	@ignore public override function install ():Void {}
+	@ignore public override function trace ():Void {}
+	@ignore public override function uninstall ():Void {}
 	
 	
 }

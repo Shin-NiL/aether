@@ -14,11 +14,12 @@ import helpers.ProcessHelper;
 import project.AssetType;
 import project.Haxelib;
 import project.HXProject;
+import project.PlatformTarget;
 import sys.io.File;
 import sys.FileSystem;
 
 
-class WindowsPlatform implements IPlatformTool {
+class WindowsPlatform extends PlatformTarget {
 	
 	
 	private var applicationDirectory:String;
@@ -27,9 +28,26 @@ class WindowsPlatform implements IPlatformTool {
 	private var useNeko:Bool;
 	
 	
-	public function build (project:HXProject):Void {
+	public function new (command:String, _project:HXProject, targetFlags:Map <String, String> ) {
 		
-		initialize (project);
+		super (command, _project, targetFlags);
+		
+		targetDirectory = project.app.path + "/windows/cpp";
+		
+		if (project.targetFlags.exists ("neko") || project.target != PlatformHelper.hostPlatform) {
+			
+			targetDirectory = project.app.path + "/windows/neko";
+			useNeko = true;
+			
+		}
+		
+		applicationDirectory = targetDirectory + "/bin/";
+		executablePath = applicationDirectory + "/" + project.app.file + ".exe";
+		
+	}
+	
+	
+	public override function build ():Void {
 		
 		var type = "release";
 		
@@ -102,9 +120,7 @@ class WindowsPlatform implements IPlatformTool {
 	}
 	
 	
-	public function clean (project:HXProject):Void {
-		
-		initialize (project);
+	public override function clean ():Void {
 		
 		if (FileSystem.exists (targetDirectory)) {
 			
@@ -115,9 +131,7 @@ class WindowsPlatform implements IPlatformTool {
 	}
 	
 	
-	public function display (project:HXProject):Void {
-		
-		initialize (project);
+	public override function display ():Void {
 		
 		var type = "release";
 		
@@ -133,12 +147,12 @@ class WindowsPlatform implements IPlatformTool {
 		
 		var hxml = PathHelper.findTemplate (project.templatePaths, (useNeko ? "neko" : "cpp") + "/hxml/" + type + ".hxml");
 		var template = new Template (File.getContent (hxml));
-		Sys.println (template.execute (generateContext (project)));
+		Sys.println (template.execute (generateContext ()));
 		
 	}
 	
 	
-	private function generateContext (project:HXProject):Dynamic {
+	private function generateContext ():Dynamic {
 		
 		var context = project.templateContext;
 		
@@ -151,28 +165,12 @@ class WindowsPlatform implements IPlatformTool {
 	}
 	
 	
-	private function initialize (project:HXProject):Void {
+	public override function run ():Void {
 		
-		targetDirectory = project.app.path + "/windows/cpp";
-		
-		if (project.targetFlags.exists ("neko") || project.target != PlatformHelper.hostPlatform) {
-			
-			targetDirectory = project.app.path + "/windows/neko";
-			useNeko = true;
-			
-		}
-		
-		applicationDirectory = targetDirectory + "/bin/";
-		executablePath = applicationDirectory + "/" + project.app.file + ".exe";
-		
-	}
-	
-	
-	public function run (project:HXProject, arguments:Array <String>):Void {
+		var arguments = [];
 		
 		if (project.target == PlatformHelper.hostPlatform) {
 			
-			initialize (project);
 			arguments = arguments.concat ([ "-livereload" ]);
 			ProcessHelper.runCommand (applicationDirectory, Path.withoutDirectory (executablePath), arguments);
 			
@@ -181,7 +179,7 @@ class WindowsPlatform implements IPlatformTool {
 	}
 	
 	
-	public function update (project:HXProject):Void {
+	public override function update ():Void {
 		
 		project = project.clone ();
 		
@@ -191,9 +189,7 @@ class WindowsPlatform implements IPlatformTool {
 			
 		}
 		
-		initialize (project);
-		
-		var context = generateContext (project);
+		var context = generateContext ();
 		
 		PathHelper.mkdir (targetDirectory);
 		PathHelper.mkdir (targetDirectory + "/obj");
@@ -215,21 +211,21 @@ class WindowsPlatform implements IPlatformTool {
 		for (asset in project.assets) {
 			
 			if (asset.embed != true) {
-			
-				var path = PathHelper.combine (applicationDirectory, asset.targetPath);
-			
-				if (asset.type != AssetType.TEMPLATE) {
 				
+				var path = PathHelper.combine (applicationDirectory, asset.targetPath);
+				
+				if (asset.type != AssetType.TEMPLATE) {
+					
 					PathHelper.mkdir (Path.directory (path));
 					FileHelper.copyAssetIfNewer (asset, path);
-				
+					
 				} else {
-				
+					
 					PathHelper.mkdir (Path.directory (path));
 					FileHelper.copyAsset (asset, path, context);
-				
+					
 				}
-			
+				
 			}
 			
 		}
@@ -239,10 +235,9 @@ class WindowsPlatform implements IPlatformTool {
 	}
 	
 	
-	public function new () {}
-	@ignore public function install (project:HXProject):Void {}
-	@ignore public function trace (project:HXProject):Void {}
-	@ignore public function uninstall (project:HXProject):Void {}
+	@ignore public override function install ():Void {}
+	@ignore public override function trace ():Void {}
+	@ignore public override function uninstall ():Void {}
 	
 	
 }

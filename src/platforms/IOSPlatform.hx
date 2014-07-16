@@ -22,13 +22,22 @@ import project.Keystore;
 import project.NDLL;
 import project.Platform;
 import project.PlatformConfig;
+import project.PlatformTarget;
 import sys.io.File;
 import sys.FileSystem;
 
-class IOSPlatform implements IPlatformTool {
+
+class IOSPlatform extends PlatformTarget {
 	
 	
-	public function build (project:HXProject):Void {
+	public function new (command:String, _project:HXProject, targetFlags:Map <String, String> ) {
+		
+		super (command, _project, targetFlags);
+		
+	}
+	
+	
+	public override function build ():Void {
 		
 		var targetDirectory = PathHelper.combine (project.app.path, "ios");
 		
@@ -44,7 +53,7 @@ class IOSPlatform implements IPlatformTool {
 	}
 	
 	
-	public function clean (project:HXProject):Void {
+	public override function clean ():Void {
 		
 		var targetPath = project.app.path + "/ios";
 		
@@ -57,16 +66,16 @@ class IOSPlatform implements IPlatformTool {
 	}
 	
 	
-	public function display (project:HXProject):Void {
+	public override function display ():Void {
 		
 		var hxml = PathHelper.findTemplate (project.templatePaths, "iphone/PROJ/haxe/Build.hxml");
 		var template = new Template (File.getContent (hxml));
-		Sys.println (template.execute (generateContext (project)));
+		Sys.println (template.execute (generateContext ()));
 		
 	}
 	
 	
-	private function generateContext (project:HXProject):Dynamic {
+	private function generateContext ():Dynamic {
 		
 		project = project.clone ();
 		
@@ -311,17 +320,16 @@ class IOSPlatform implements IPlatformTool {
 	}
 	
 	
-	public function run (project:HXProject, arguments:Array <String>):Void {
+	public override function run ():Void {
 		
 		IOSHelper.launch (project, PathHelper.combine (project.app.path, "ios"));
 		
 	}
 	
 	
-	public function update (project:HXProject):Void {
+	public override function update ():Void {
 		
 		project = project.clone ();
-		
 		
 		var manifest = new Asset ();
 		manifest.id = "__manifest__";
@@ -330,7 +338,7 @@ class IOSPlatform implements IPlatformTool {
 		manifest.type = AssetType.TEXT;
 		project.assets.push (manifest);
 		
-		var context = generateContext (project);
+		var context = generateContext ();
 		
 		var targetDirectory = PathHelper.combine (project.app.path, "ios");
 		var projectDirectory = targetDirectory + "/" + project.app.file + "/";
@@ -390,7 +398,7 @@ class IOSPlatform implements IPlatformTool {
 		FileHelper.recursiveCopyTemplate (project.templatePaths, "iphone/PROJ/haxe", projectDirectory + "/haxe", context);
 		FileHelper.recursiveCopyTemplate (project.templatePaths, "haxe", projectDirectory + "/haxe", context);
 		FileHelper.recursiveCopyTemplate (project.templatePaths, "iphone/PROJ/Classes", projectDirectory + "/Classes", context);
-        FileHelper.copyFileTemplate (project.templatePaths, "iphone/PROJ/PROJ-Entitlements.plist", projectDirectory + "/" + project.app.file + "-Entitlements.plist", context);
+		FileHelper.copyFileTemplate (project.templatePaths, "iphone/PROJ/PROJ-Entitlements.plist", projectDirectory + "/" + project.app.file + "-Entitlements.plist", context);
 		FileHelper.copyFileTemplate (project.templatePaths, "iphone/PROJ/PROJ-Info.plist", projectDirectory + "/" + project.app.file + "-Info.plist", context);
 		FileHelper.copyFileTemplate (project.templatePaths, "iphone/PROJ/PROJ-Prefix.pch", projectDirectory + "/" + project.app.file + "-Prefix.pch", context);
 		FileHelper.recursiveCopyTemplate (project.templatePaths, "iphone/PROJ.xcodeproj", targetDirectory + "/" + project.app.file + ".xcodeproj", context);
@@ -520,10 +528,9 @@ class IOSPlatform implements IPlatformTool {
 	}*/
 	
 	
-	public function new () {}
-	@ignore public function install (project:HXProject):Void {}
-	@ignore public function trace (project:HXProject):Void {}
-	@ignore public function uninstall (project:HXProject):Void {}
+	@ignore public override function install ():Void {}
+	@ignore public override function trace ():Void {}
+	@ignore public override function uninstall ():Void {}
 	
 	
 }

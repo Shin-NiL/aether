@@ -15,18 +15,45 @@ import helpers.ProcessHelper;
 import project.Architecture;
 import project.AssetType;
 import project.HXProject;
+import project.PlatformTarget;
 import sys.io.File;
 import sys.FileSystem;
 
-class AndroidPlatform implements IPlatformTool {
+
+class AndroidPlatform extends PlatformTarget {
 	
 	
 	private var deviceID:String;
 	
 	
-	public function build (project:HXProject):Void {
+	public function new (command:String, _project:HXProject, targetFlags:Map <String, String>) {
 		
-		initialize (project);
+		super (command, _project, targetFlags);
+		
+		if (command != "display" && command != "clean") {
+			
+			project = project.clone ();
+			
+			if (!project.environment.exists ("ANDROID_SETUP")) {
+				
+				LogHelper.error ("You need to run \"aether setup android\" before you can use the Android target");
+				
+			}
+			
+			AndroidHelper.initialize (project);
+			
+			if (deviceID == null && project.targetFlags.exists ("device")) {
+				
+				deviceID = project.targetFlags.get ("device") + ":5555";
+				
+			}
+			
+		}
+		
+	}
+	
+	
+	public override function build ():Void {
 		
 		var destination = project.app.path + "/android/bin";
 		
@@ -123,7 +150,7 @@ class AndroidPlatform implements IPlatformTool {
 	}
 	
 	
-	public function clean (project:HXProject):Void {
+	public override function clean ():Void {
 		
 		var targetPath = project.app.path + "/android";
 		
@@ -136,7 +163,7 @@ class AndroidPlatform implements IPlatformTool {
 	}
 	
 	
-	public function display (project:HXProject):Void {
+	public override function display ():Void {
 		
 		var hxml = PathHelper.findTemplate (project.templatePaths, "android/hxml/" + (project.debug ? "debug" : "release") + ".hxml");
 		
@@ -149,9 +176,7 @@ class AndroidPlatform implements IPlatformTool {
 	}
 	
 	
-	public function install (project:HXProject):Void {
-		
-		initialize (project);
+	public override function install ():Void {
 		
 		var build = "debug";
 		
@@ -163,60 +188,35 @@ class AndroidPlatform implements IPlatformTool {
 		
 		deviceID = AndroidHelper.install (project, FileSystem.fullPath (project.app.path) + "/android/bin/bin/" + project.app.file + "-" + build + ".apk", deviceID);
 		
-   }
-	
-	
-	private function initialize (project:HXProject):Void {
-		
-		if (!project.environment.exists ("ANDROID_SETUP")) {
-			
-			LogHelper.error ("You need to run \"aether setup android\" before you can use the Android target");
-			
-		}
-		
-		AndroidHelper.initialize (project);
-		
-		if (deviceID == null && project.targetFlags.exists ("device")) {
-			
-			deviceID = project.targetFlags.get ("device") + ":5555";
-			
-		}
-		
 	}
 	
 	
-	public function run (project:HXProject, arguments:Array <String>):Void {
-		
-		initialize (project);
+	public override function run ():Void {
 		
 		AndroidHelper.run (project.meta.packageName + "/" + project.meta.packageName + ".MainActivity", deviceID);
 		
 	}
 	
 	
-	public function trace (project:HXProject):Void {
-		
-		initialize (project);
+	public override function trace ():Void {
 		
 		AndroidHelper.trace (project, project.debug, deviceID);
 		
 	}
 	
 	
-	public function uninstall (project:HXProject):Void {
-		
-		initialize (project);
+	public override function uninstall ():Void {
 		
 		AndroidHelper.uninstall (project.meta.packageName, deviceID);
 		
 	}
 	
 	
-	public function update (project:HXProject):Void {
+	public override function update ():Void {
 		
-		project = project.clone ();
+		//project = project.clone ();
 		
-		initialize (project);
+		//initialize (project);
 		
 		var destination = project.app.path + "/android/bin/";
 		PathHelper.mkdir (destination);
@@ -371,9 +371,6 @@ class AndroidPlatform implements IPlatformTool {
 		AssetHelper.createManifest (project, destination + "/assets/manifest");
 		
 	}
-	
-	
-	public function new () {}
 	
 	
 }

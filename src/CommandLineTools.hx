@@ -150,125 +150,67 @@ class CommandLineTools {
 			
 		} else {
 			
-			var platform:IPlatformTool = null;
+			var platform:PlatformTarget = null;
 			
 			switch (project.target) {
 				
 				case ANDROID:
 					
-					platform = new AndroidPlatform ();
+					platform = new AndroidPlatform (command, project, targetFlags);
 					
 				case BLACKBERRY:
 					
-					platform = new BlackBerryPlatform ();
+					platform = new BlackBerryPlatform (command, project, targetFlags);
 				
 				case IOS:
 					
-					platform = new IOSPlatform ();
+					platform = new IOSPlatform (command, project, targetFlags);
 				
 				case TIZEN:
 					
-					platform = new TizenPlatform ();
+					platform = new TizenPlatform (command, project, targetFlags);
 				
 				case WEBOS:
 					
-					platform = new WebOSPlatform ();
+					platform = new WebOSPlatform (command, project, targetFlags);
 				
 				case WINDOWS:
 					
-					platform = new WindowsPlatform ();
+					platform = new WindowsPlatform (command, project, targetFlags);
 				
 				case MAC:
 					
-					platform = new MacPlatform ();
+					platform = new MacPlatform (command, project, targetFlags);
 				
 				case LINUX:
 					
-					platform = new LinuxPlatform ();
+					platform = new LinuxPlatform (command, project, targetFlags);
 				
 				case FLASH:
 					
-					platform = new FlashPlatform ();
+					platform = new FlashPlatform (command, project, targetFlags);
 				
 				case HTML5:
 					
-					platform = new HTML5Platform ();
+					platform = new HTML5Platform (command, project, targetFlags);
 				
 				case FIREFOXOS:
 					
-					platform = new FirefoxOSPlatform ();
+					platform = new FirefoxOSPlatform (command, project, targetFlags);
 				
 				case EMSCRIPTEN:
 					
-					platform = new EmscriptenPlatform ();
+					platform = new EmscriptenPlatform (command, project, targetFlags);
 				
 			}
-			
-			if (platform == null) {
-				
-				LogHelper.error ("\"" + Std.string (project.target) + "\" is an unknown target");
-				
-			} else {
-				
-				LogHelper.info ("", "\x1b[36;1mUsing target platform: " + Std.string (project.target).toUpperCase () + "\x1b[0m");
-				
-			}
-			
-			var metaFields = Meta.getFields (Type.getClass (platform));
 			
 			if (platform != null) {
 				
-				if (!Reflect.hasField (metaFields.display, "ignore") && (command == "display")) {
-					
-					platform.display (project);
-					
-				}
+				platform.execute ();
 				
-				if (!Reflect.hasField (metaFields.clean, "ignore") && (command == "clean" || targetFlags.exists ("clean"))) {
-					
-					LogHelper.info ("", "\n\x1b[36;1mRunning command: CLEAN\x1b[0m");
-					platform.clean (project);
-					
-				}
+			} else {
 				
-				if (!Reflect.hasField (metaFields.update, "ignore") && (command == "update" || command == "build" || command == "test")) {
-					
-					LogHelper.info ("", "\n\x1b[36;1mRunning command: UPDATE\x1b[0m");
-					platform.update (project);
-					
-				}
-				
-				if (!Reflect.hasField (metaFields.build, "ignore") && (command == "build" || command == "test")) {
-					
-					LogHelper.info ("", "\n\x1b[36;1mRunning command: BUILD\x1b[0m");
-					platform.build (project);
-					
-				}
-				
-				if (!Reflect.hasField (metaFields.install, "ignore") && (command == "install" || command == "run" || command == "test")) {
-					
-					LogHelper.info ("", "\n\x1b[36;1mRunning command: INSTALL\x1b[0m");
-					platform.install (project);
-					
-				}
-			
-				if (!Reflect.hasField (metaFields.run, "ignore") && (command == "run" || command == "rerun" || command == "test")) {
-					
-					LogHelper.info ("", "\n\x1b[36;1mRunning command: RUN\x1b[0m");
-					platform.run (project, additionalArguments);
-					
-				}
-			
-				if (!Reflect.hasField (metaFields.trace, "ignore") && (command == "test" || command == "trace")) {
-					
-					if (traceEnabled || command == "trace") {
-						
-						LogHelper.info ("", "\n\x1b[36;1mRunning command: TRACE\x1b[0m");
-						platform.trace (project);
-						
-					}
-					
-				}
+				LogHelper.error ("\"" + Std.string (project.target) + "\" is an unknown target");
 				
 			}
 			

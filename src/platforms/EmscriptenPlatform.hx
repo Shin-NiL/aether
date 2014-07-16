@@ -14,20 +14,29 @@ import helpers.PathHelper;
 import helpers.ProcessHelper;
 import project.AssetType;
 import project.HXProject;
+import project.PlatformTarget;
 import sys.io.File;
 import sys.FileSystem;
 
 
-class EmscriptenPlatform implements IPlatformTool {
+class EmscriptenPlatform extends PlatformTarget {
 	
 	
 	private var outputDirectory:String;
 	private var outputFile:String;
 	
 	
-	public function build (project:HXProject):Void {
+	public function new (command:String, _project:HXProject, targetFlags:Map <String, String>) {
 		
-		initialize (project);
+		super (command, _project, targetFlags);
+		
+		outputDirectory = project.app.path + "/emscripten";
+		outputFile = outputDirectory + "/bin/" + project.app.file + ".js";
+		
+	}
+	
+	
+	public override function build ():Void {
 		
 		var type = "release";
 		
@@ -180,7 +189,7 @@ class EmscriptenPlatform implements IPlatformTool {
 	}
 	
 	
-	public function clean (project:HXProject):Void {
+	public override function clean ():Void {
 		
 		var targetPath = project.app.path + "/emscripten";
 		
@@ -193,9 +202,7 @@ class EmscriptenPlatform implements IPlatformTool {
 	}
 	
 	
-	public function display (project:HXProject):Void {
-		
-		initialize (project);
+	public override function display ():Void {
 		
 		var type = "release";
 		
@@ -221,26 +228,14 @@ class EmscriptenPlatform implements IPlatformTool {
 	}
 	
 	
-	private function initialize (project:HXProject):Void {
-				
-		outputDirectory = project.app.path + "/emscripten";
-		outputFile = outputDirectory + "/bin/" + project.app.file + ".js";
-		
-	}
-	
-	
-	public function run (project:HXProject, arguments:Array <String>):Void {
-		
-		initialize (project);
+	public override function run ():Void {
 		
 		HTML5Helper.launch (project, project.app.path + "/emscripten/bin");
 		
 	}
 	
 	
-	public function update (project:HXProject):Void {
-		
-		initialize (project);
+	public override function update ():Void {
 		
 		project = project.clone ();
 		
@@ -317,10 +312,9 @@ class EmscriptenPlatform implements IPlatformTool {
 	}
 	
 	
-	public function new () {}
-	@ignore public function install (project:HXProject):Void {}
-	@ignore public function trace (project:HXProject):Void {}
-	@ignore public function uninstall (project:HXProject):Void {}
+	@ignore public override function install ():Void {}
+	@ignore public override function trace ():Void {}
+	@ignore public override function uninstall ():Void {}
 	
 	
 }

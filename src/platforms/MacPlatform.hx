@@ -15,10 +15,11 @@ import project.AssetType;
 import project.Architecture;
 import project.HXProject;
 import project.Platform;
+import project.PlatformTarget;
 import sys.io.File;
 import sys.FileSystem;
 
-class MacPlatform implements IPlatformTool {
+class MacPlatform extends PlatformTarget {
 	
 	
 	private var applicationDirectory:String;
@@ -30,9 +31,45 @@ class MacPlatform implements IPlatformTool {
 	private var useNeko:Bool;
 	
 	
-	public function build (project:HXProject):Void {
+	public function new (command:String, _project:HXProject, targetFlags:Map <String, String> ) {
 		
-		initialize (project);
+		super (command, _project, targetFlags);
+		
+		if (project.targetFlags.exists ("neko") || project.target != PlatformHelper.hostPlatform) {
+			
+			useNeko = true;
+			
+		}
+		
+		for (architecture in project.architectures) {
+			
+			if (architecture == Architecture.X64) {
+				
+				is64 = true;
+				
+			}
+			
+		}
+		
+		if (!useNeko) {
+			
+			targetDirectory = project.app.path + "/mac" + (is64 ? "64" : "") + "/cpp";
+			
+		} else {
+			
+			targetDirectory = project.app.path + "/mac" + (is64 ? "64" : "") + "/neko";
+			
+		}
+		
+		applicationDirectory = targetDirectory + "/bin/" + project.app.file + ".app";
+		contentDirectory = applicationDirectory + "/Contents/Resources";
+		executableDirectory = applicationDirectory + "/Contents/MacOS";
+		executablePath = executableDirectory + "/" + project.app.file;
+		
+	}
+	
+	
+	public override function build ():Void {
 		
 		var type = "release";
 		
@@ -90,9 +127,7 @@ class MacPlatform implements IPlatformTool {
 	}
 	
 	
-	public function clean (project:HXProject):Void {
-		
-		initialize (project);
+	public override function clean ():Void {
 		
 		if (FileSystem.exists (targetDirectory)) {
 			
@@ -103,9 +138,7 @@ class MacPlatform implements IPlatformTool {
 	}
 	
 	
-	public function display (project:HXProject):Void {
-		
-		initialize (project);
+	public override function display ():Void {
 		
 		var type = "release";
 		
@@ -121,12 +154,12 @@ class MacPlatform implements IPlatformTool {
 		
 		var hxml = PathHelper.findTemplate (project.templatePaths, (useNeko ? "neko" : "cpp") + "/hxml/" + type + ".hxml");
 		var template = new Template (File.getContent (hxml));
-		Sys.println (template.execute (generateContext (project)));
+		Sys.println (template.execute (generateContext ()));
 		
 	}
 	
 	
-	private function generateContext (project:HXProject):Dynamic {
+	private function generateContext ():Dynamic {
 		
 		var context = project.templateContext;
 		context.NEKO_FILE = targetDirectory + "/obj/ApplicationMain.n";
@@ -138,47 +171,12 @@ class MacPlatform implements IPlatformTool {
 	}
 	
 	
-	private function initialize (project:HXProject):Void {
+	public override function run ():Void {
 		
-		if (project.targetFlags.exists ("neko") || project.target != PlatformHelper.hostPlatform) {
-			
-			useNeko = true;
-			
-		}
-		
-		for (architecture in project.architectures) {
-			
-			if (architecture == Architecture.X64) {
-				
-				is64 = true;
-				
-			}
-			
-		}
-		
-		if (!useNeko) {
-			
-			targetDirectory = project.app.path + "/mac" + (is64 ? "64" : "") + "/cpp";
-			
-		} else {
-			
-			targetDirectory = project.app.path + "/mac" + (is64 ? "64" : "") + "/neko";
-			
-		}
-		
-		applicationDirectory = targetDirectory + "/bin/" + project.app.file + ".app";
-		contentDirectory = applicationDirectory + "/Contents/Resources";
-		executableDirectory = applicationDirectory + "/Contents/MacOS";
-		executablePath = executableDirectory + "/" + project.app.file;
-		
-	}
-	
-	
-	public function run (project:HXProject, arguments:Array <String>):Void {
+		var arguments = [];
 		
 		if (project.target == PlatformHelper.hostPlatform) {
 			
-			initialize (project);
 			arguments = arguments.concat ([ "-livereload" ]);
 			ProcessHelper.runCommand (executableDirectory, "./" + Path.withoutDirectory (executablePath), arguments);
 			
@@ -187,9 +185,7 @@ class MacPlatform implements IPlatformTool {
 	}
 	
 	
-	public function update (project:HXProject):Void {
-		
-		initialize (project);
+	public override function update ():Void {
 		
 		project = project.clone ();
 		
@@ -199,7 +195,7 @@ class MacPlatform implements IPlatformTool {
 			
 		}
 		
-		var context = generateContext (project);
+		var context = generateContext ();
 		
 		PathHelper.mkdir (targetDirectory);
 		PathHelper.mkdir (targetDirectory + "/obj");
@@ -241,10 +237,9 @@ class MacPlatform implements IPlatformTool {
 	}
 	
 	
-	public function new () {}
-	@ignore public function install (project:HXProject):Void {}
-	@ignore public function trace (project:HXProject):Void {}
-	@ignore public function uninstall (project:HXProject):Void {}
+	@ignore public override function install ():Void {}
+	@ignore public override function trace ():Void {}
+	@ignore public override function uninstall ():Void {}
 	
 	
 }

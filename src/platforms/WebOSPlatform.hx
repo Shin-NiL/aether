@@ -1,4 +1,3 @@
-
 package platforms;
 
 
@@ -13,13 +12,22 @@ import helpers.ProcessHelper;
 import helpers.WebOSHelper;
 import project.AssetType;
 import project.HXProject;
+import project.PlatformTarget;
 import sys.io.File;
 import sys.FileSystem;
 
-class WebOSPlatform implements IPlatformTool {
+
+class WebOSPlatform extends PlatformTarget {
 	
 	
-	public function build (project:HXProject):Void {
+	public function new (command:String, _project:HXProject, targetFlags:Map <String, String> ) {
+		
+		super (command, _project, targetFlags);
+		
+	}
+	
+	
+	public override function build ():Void {
 		
 		var type = "release";
 		
@@ -52,7 +60,7 @@ class WebOSPlatform implements IPlatformTool {
 	}
 	
 	
-	public function clean (project:HXProject):Void {
+	public override function clean ():Void {
 		
 		var targetPath = project.app.path + "/webos";
 		
@@ -65,7 +73,7 @@ class WebOSPlatform implements IPlatformTool {
 	}
 	
 	
-	public function display (project:HXProject):Void {
+	public override function display ():Void {
 		
 		var type = "release";
 		
@@ -90,22 +98,28 @@ class WebOSPlatform implements IPlatformTool {
 	}
 	
 	
-	public function run (project:HXProject, arguments:Array <String>):Void {
+	public override function install ():Void {
 		
 		WebOSHelper.install (project, project.app.path + "/webos");
+		
+	}
+	
+	
+	public override function run ():Void {
+		
 		WebOSHelper.launch (project);
 		
 	}
 	
 	
-	public function trace (project:HXProject):Void {
+	public override function trace ():Void {
 		
 		WebOSHelper.trace (project);
 		
 	}
 	
 	
-	public function update (project:HXProject):Void {
+	public override function update ():Void {
 		
 		project = project.clone ();
 		var destination = project.app.path + "/webos/bin/";
@@ -165,9 +179,7 @@ class WebOSPlatform implements IPlatformTool {
 	}
 	
 	
-	public function new () {}
-	@ignore public function install (project:HXProject):Void {}
-	@ignore public function uninstall (project:HXProject):Void {}
+	@ignore public override function uninstall ():Void {}
 	
 	
 }

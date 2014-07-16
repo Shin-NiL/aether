@@ -12,17 +12,25 @@ import helpers.ProcessHelper;
 import helpers.TizenHelper;
 import project.AssetType;
 import project.HXProject;
+import project.PlatformTarget;
 import sys.io.File;
 import sys.FileSystem;
 
 
-class TizenPlatform implements IPlatformTool {
+class TizenPlatform extends PlatformTarget {
 	
 	
 	private static var uuid:String = null;
 	
 	
-	public function build (project:HXProject):Void {
+	public function new (command:String, _project:HXProject, targetFlags:Map <String, String> ) {
+		
+		super (command, _project, targetFlags);
+		
+	}
+	
+	
+	public override function build ():Void {
 		
 		var destination = project.app.path + "/tizen/bin/";
 		
@@ -71,7 +79,7 @@ class TizenPlatform implements IPlatformTool {
 	}
 	
 	
-	public function clean (project:HXProject):Void {
+	public override function clean ():Void {
 		
 		var targetPath = project.app.path + "/tizen";
 		
@@ -84,7 +92,7 @@ class TizenPlatform implements IPlatformTool {
 	}
 	
 	
-	public function display (project:HXProject):Void {
+	public override function display ():Void {
 		
 		var type = "release";
 		
@@ -109,7 +117,7 @@ class TizenPlatform implements IPlatformTool {
 	}
 	
 	
-	public function run (project:HXProject, arguments:Array <String>):Void {
+	public override function run ():Void {
 		
 		TizenHelper.install (project, project.app.path + "/tizen/bin/CommandLineBuild");
 		TizenHelper.launch (project);
@@ -117,14 +125,14 @@ class TizenPlatform implements IPlatformTool {
 	}
 	
 	
-	public function trace (project:HXProject):Void {
+	public override function trace ():Void {
 		
 		TizenHelper.trace (project);
 		
 	}
 	
 	
-	public function update (project:HXProject):Void {
+	public override function update ():Void {
 		
 		project = project.clone ();
 		var destination = project.app.path + "/tizen/bin/";
@@ -194,9 +202,8 @@ class TizenPlatform implements IPlatformTool {
 	}
 	
 	
-	public function new () {}
-	@ignore public function install (project:HXProject):Void {}
-	@ignore public function uninstall (project:HXProject):Void {}
+	@ignore public override function install ():Void {}
+	@ignore public override function uninstall ():Void {}
 	
 	
 }

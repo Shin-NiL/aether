@@ -11,20 +11,28 @@ import helpers.PathHelper;
 import helpers.ProcessHelper;
 import project.AssetType;
 import project.HXProject;
+import project.PlatformTarget;
 import sys.io.File;
 import sys.FileSystem;
 
 
-class HTML5Platform implements IPlatformTool {
+class HTML5Platform extends PlatformTarget {
 	
 	
 	private var outputDirectory:String;
 	private var outputFile:String;
 	
 	
-	public function build (project:HXProject):Void {
+	public function new (command:String, _project:HXProject, targetFlags:Map <String, String> ) {
+		
+		super (command, _project, targetFlags);
 		
 		initialize (project);
+		
+	}
+	
+	
+	public override function build ():Void {
 		
 		if (project.app.main != null) {
 			
@@ -60,7 +68,7 @@ class HTML5Platform implements IPlatformTool {
 	}
 	
 	
-	public function clean (project:HXProject):Void {
+	public override function clean ():Void {
 		
 		var targetPath = project.app.path + "/html5";
 		
@@ -73,9 +81,7 @@ class HTML5Platform implements IPlatformTool {
 	}
 	
 	
-	public function display (project:HXProject):Void {
-		
-		initialize (project);
+	public override function display ():Void {
 		
 		var type = "release";
 		
@@ -109,18 +115,14 @@ class HTML5Platform implements IPlatformTool {
 	}
 	
 	
-	public function run (project:HXProject, arguments:Array < String > ):Void {
-		
-		initialize (project);
+	public override function run ():Void {
 		
 		HTML5Helper.launch (project, project.app.path + "/html5/bin");
 		
 	}
 	
 	
-	public function update (project:HXProject):Void {
-		
-		initialize (project);
+	public override function update ():Void {
 		
 		project = project.clone ();
 		
@@ -264,16 +266,15 @@ class HTML5Platform implements IPlatformTool {
 			}
 			
 		}
-
+		
 		AssetHelper.createManifest (project, PathHelper.combine (destination, "manifest"));
 		
 	}
 	
 	
-	public function new () {}
-	@ignore public function install (project:HXProject):Void {}
-	@ignore public function trace (project:HXProject):Void {}
-	@ignore public function uninstall (project:HXProject):Void {}
+	@ignore public override function install ():Void {}
+	@ignore public override function trace ():Void {}
+	@ignore public override function uninstall ():Void {}
 	
 	
 }

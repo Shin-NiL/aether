@@ -12,7 +12,14 @@ import sys.FileSystem;
 class FirefoxOSPlatform extends HTML5Platform {
 	
 	
-	public override function clean (project:HXProject):Void {
+	public function new (command:String, _project:HXProject, targetFlags:Map <String, String>) {
+		
+		super (command, _project, targetFlags);
+		
+	}
+	
+	
+	public override function clean ():Void {
 		
 		var targetPath = project.app.path + "/firefoxos";
 		
@@ -33,18 +40,16 @@ class FirefoxOSPlatform extends HTML5Platform {
 	}
 	
 	
-	public override function run (project:HXProject, arguments:Array < String > ):Void {
-		
-		initialize (project);
+	public override function run ():Void {
 		
 		HTML5Helper.launch (project, project.app.path + "/firefoxos/bin");
 		
 	}
 	
 	
-	public override function update (project:HXProject):Void {
+	public override function update ():Void {
 		
-		super.update (project);
+		super.update ();
 		
 		var destination = outputDirectory + "/bin/";
 		var context = project.templateContext;
@@ -63,11 +68,9 @@ class FirefoxOSPlatform extends HTML5Platform {
 	}
 	
 	
-	public function new () {
-		
-		super ();
-		
-	}
+	@ignore public override function install ():Void {}
+	@ignore public override function trace ():Void {}
+	@ignore public override function uninstall ():Void {}
 	
 	
 }
