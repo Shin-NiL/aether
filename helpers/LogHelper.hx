@@ -97,14 +97,20 @@ class LogHelper {
 					var process = new Process ("tput", [ "colors" ]);
 					result = process.exitCode ();
 					process.close ();
-				
+					
 				} catch (e:Dynamic) {};
 				
 				colorSupported = (result == 0);
 				
 			} else {
 				
-				colorSupported = (Sys.getEnv ("ANSICON") != null);
+				colorSupported = false;
+				
+				if (Sys.getEnv ("TERM") == "xterm" || Sys.getEnv ("ANSICON") != null) {
+					
+					colorSupported = true;
+					
+				}
 				
 			}
 			
