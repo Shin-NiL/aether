@@ -25,9 +25,9 @@ class HTML5Platform extends PlatformTarget {
 	
 	public function new (command:String, _project:HXProject, targetFlags:Map <String, String> ) {
 		
-		super (command, _project, targetFlags);
+		initialize (_project);
 		
-		initialize (project);
+		super (command, _project, targetFlags);
 		
 	}
 	

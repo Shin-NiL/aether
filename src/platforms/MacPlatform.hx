@@ -217,17 +217,17 @@ class MacPlatform extends PlatformTarget {
 			if (asset.embed != true) {
 			
 				if (asset.type != AssetType.TEMPLATE) {
-				
+					
 					PathHelper.mkdir (Path.directory (PathHelper.combine (contentDirectory, asset.targetPath)));
 					FileHelper.copyAssetIfNewer (asset, PathHelper.combine (contentDirectory, asset.targetPath));
-				
+					
 				} else {
-				
+					
 					PathHelper.mkdir (Path.directory (PathHelper.combine (targetDirectory, asset.targetPath)));
 					FileHelper.copyAsset (asset, PathHelper.combine (targetDirectory, asset.targetPath), context);
-				
+					
 				}
-			
+				
 			}
 			
 		}
