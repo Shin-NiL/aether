@@ -140,7 +140,20 @@ class CommandLineTools {
 			var temporaryFile = PathHelper.getTemporaryFile ();
 			File.saveContent (temporaryFile, projectData);
 			
-			ProcessHelper.runCommand ("", "haxelib", [ "run", handler, command, temporaryFile ]);
+			var args = [ "run", handler, command, temporaryFile ];
+			
+			if (LogHelper.verbose) args.push ("-verbose");
+			if (!LogHelper.enableColor) args.push ("-nocolor");
+			if (!traceEnabled) args.push ("-notrace");
+			
+			if (additionalArguments.length > 0) {
+				
+				args.push ("-args");
+				args = args.concat (additionalArguments);
+				
+			}
+			
+			ProcessHelper.runCommand ("", "haxelib", args);
 			
 			try {
 				
@@ -1010,7 +1023,7 @@ class CommandLineTools {
 		var catchHaxeFlag = false;
 		
 		for (argument in arguments) {
-
+			
 			var equals = argument.indexOf ("=");
 			
 			if (catchHaxeFlag) {
@@ -1023,7 +1036,7 @@ class CommandLineTools {
 				additionalArguments.push (argument);
 				
 			} else if (equals > 0) {
-
+				
 				var argValue = argument.substr (equals + 1);
 				// if quotes remain on the argValue we need to strip them off
 				// otherwise the compiler really dislikes the result!

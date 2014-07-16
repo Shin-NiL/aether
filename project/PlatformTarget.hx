@@ -8,13 +8,13 @@ import helpers.LogHelper;
 class PlatformTarget {
 	
 	
-	private var command:String;
-	private var project:HXProject;
-	private var targetFlags:Map <String, String>;
-	private var traceEnabled = true;
+	public var command:String;
+	public var project:HXProject;
+	public var targetFlags:Map <String, String>;
+	public var traceEnabled = true;
 	
 	
-	public function new (command:String, project:HXProject, targetFlags:Map <String, String>) {
+	public function new (command:String = null, project:HXProject = null, targetFlags:Map <String, String> = null) {
 		
 		this.command = command;
 		this.project = project;
