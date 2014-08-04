@@ -27,19 +27,22 @@ class ProcessHelper {
 		
 		if (PlatformHelper.hostPlatform == Platform.WINDOWS) {
 			
+			var args = [];
+			
 			if (executable == "") {
 				
 				executable = "cmd";
+				args = [ "/c" ];
 				
 			}
 			
 			if (targetPath.indexOf (":\\") == -1) {
 				
-				runCommand (workingDirectory, executable, [ "/c", targetPath ]);
+				runCommand (workingDirectory, executable, args.concat ([ targetPath ]));
 				
 			} else {
 				
-				runCommand (workingDirectory, executable, [ "/c", ".\\" + targetPath ]);
+				runCommand (workingDirectory, executable, args.concat ([ ".\\" + targetPath ]));
 				
 			}
 			
