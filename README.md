@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/openfl/aether.png?label=ready&title=Ready)](https://waffle.io/openfl/aether)
 aether
 ==========
 [![Build Status](https://travis-ci.org/openfl/aether.png)](https://travis-ci.org/openfl/aether)
