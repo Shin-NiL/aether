@@ -14,6 +14,7 @@ import helpers.FileHelper;
 import helpers.ImageHelper;
 import helpers.LogHelper;
 import lime.graphics.Image;
+import lime.math.Rectangle;
 import lime.utils.ByteArray;
 import project.Icon;
 import sys.io.File;
@@ -34,14 +35,14 @@ class IconHelper {
 			
 		} else {
 			
-			/*var bitmapData = getIconBitmap (icons, width, height);
+			var image = getIconImage (icons, width, height);
 			
-			if (bitmapData != null) {
+			if (image != null) {
 				
-				File.saveBytes (targetPath, bitmapData.encode ("png"));
+				File.saveBytes (targetPath, image.encode ("png"));
 				return true;
 				
-			}*/
+			}
 			
 		}
 		
@@ -52,7 +53,7 @@ class IconHelper {
 	
 	public static function createMacIcon (icons:Array <Icon>, targetPath:String):Bool {
 		
-		/*var out = new BytesOutput ();
+		var out = new BytesOutput ();
 		out.bigEndian = true;
 		
 		// Not sure why the 128x128 icon is not saving properly. Disabling for now
@@ -61,14 +62,14 @@ class IconHelper {
 			
 			var s =  ([ 16, 32, 48, 128 ])[i];
 			var code =  ([ "is32", "il32", "ih32", "it32" ])[i];
-			var bmp = getIconBitmap (icons, s, s);
+			var image = getIconImage (icons, s, s);
 			
-			if (bmp != null) {
+			if (image != null) {
 				
 				for (c in 0...4) out.writeByte (code.charCodeAt(c));
 				
 				var n = s * s;
-				var pixels = bmp.getPixels (new Rectangle (0, 0, s, s));
+				var pixels = image.getPixels (new Rectangle (0, 0, s, s));
 				
 				var bytes_r = packBits (pixels, 1, s * s);
 				var bytes_g = packBits (pixels, 2, s * s);
@@ -95,13 +96,13 @@ class IconHelper {
 			
 			var s =  ([ 32, 64, 256, 512, 1024 ])[i];
 			var code =  ([ "ic11", "ic12", "ic08", "ic09", "ic10" ])[i];
-			var bmp = getIconBitmap (icons, s, s);
+			var image = getIconImage (icons, s, s);
 			
-			if (bmp != null) {
+			if (image != null) {
 				
 				for (c in 0...4) out.writeByte (code.charCodeAt(c));
 				
-				var bytes = bmp.encode ("png");
+				var bytes = image.encode ("png");
 				
 				out.writeInt32 (bytes.length + 8);
 				out.writeBytes (bytes, 0, bytes.length);
@@ -125,7 +126,7 @@ class IconHelper {
 			
 			return true;
 			
-		}*/
+		}
 		
 		return false;
 		
@@ -134,18 +135,18 @@ class IconHelper {
 	
 	public static function createWindowsIcon (icons:Array <Icon>, targetPath:String):Bool {
 		
-		/*var sizes = [ 16, 24, 32, 40, 48, 64, 96, 128, 256 ];
-		var bmps = new Array <BitmapData> ();
+		var sizes = [ 16, 24, 32, 40, 48, 64, 96, 128, 256 ];
+		var images = new Array <Image> ();
 		
 		var data_pos = 6;
 		
 		for (size in sizes) {
 			
-			var bmp = getIconBitmap (icons, size, size);
+			var image = getIconImage (icons, size, size);
 			
-			if (bmp != null) {
+			if (image != null) {
 				
-				bmps.push (bmp);
+				images.push (image);
 				data_pos += 16;
 				
 			}
@@ -156,11 +157,11 @@ class IconHelper {
 		ico.bigEndian = false;
 		ico.writeShort (0);
 		ico.writeShort (1);
-		ico.writeShort (bmps.length);
+		ico.writeShort (images.length);
 		
-		for (bmp in bmps) {
+		for (image in images) {
 			
-			var size = bmp.width;
+			var size = image.width;
 			var xor_size = size * size * 4;
 			var and_size = size * size >> 3;
 			ico.writeByte (size);
@@ -175,9 +176,9 @@ class IconHelper {
 			
 		}
 		
-		for (bmp in bmps) {
+		for (image in images) {
 			
-			var size = bmp.width;
+			var size = image.width;
 			var xor_size = size * size * 4;
 			var and_size = size * size >> 3;
 			
@@ -193,7 +194,7 @@ class IconHelper {
 			ico.writeInt (0); // cols
 			ico.writeInt (0); // important
 			
-			var bits = bmp.getPixels (new Rectangle (0, 0, size, size));
+			var bits = image.getPixels (new Rectangle (0, 0, size, size));
 			var and_mask = new ByteArray ();
 			
 			for (y in 0...size) {
@@ -204,10 +205,10 @@ class IconHelper {
 				
 				for (i in 0...size) {
 					
-					var a = bits.readByte ();
 					var r = bits.readByte ();
 					var g = bits.readByte ();
 					var b = bits.readByte ();
+					var a = bits.readByte ();
 					ico.writeByte (b);
 					ico.writeByte (g);
 					ico.writeByte (r);
@@ -234,7 +235,7 @@ class IconHelper {
 			
 		}
 		
-		if (bmps.length > 0) {
+		if (images.length > 0) {
 			
 			var file = File.write (targetPath, true);
 			file.writeBytes (ico, 0, ico.length);
@@ -242,7 +243,7 @@ class IconHelper {
 			
 			return true;
 			
-		}*/
+		}
 		
 		return false;
 		
@@ -328,9 +329,7 @@ class IconHelper {
 	
 	private static function getIconImage (icons:Array <Icon>, width:Int, height:Int, backgroundColor:Int = null):Image {
 		
-		return null;
-		
-		/*var icon = findMatch (icons, width, height);
+		var icon = findMatch (icons, width, height);
 		
 		if (icon == null) {
 			
@@ -352,21 +351,21 @@ class IconHelper {
 		}
 		
 		var extension = Path.extension (icon.path);
-		var bitmapData = null;
+		var image = null;
 		
 		switch (extension) {
 			
 			case "png", "jpg", "jpeg":
 				
-				bitmapData = ImageHelper.resizeBitmapData (BitmapData.load (icon.path), width, height);
+				image = ImageHelper.resizeImage (Image.fromFile (icon.path), width, height);
 			
 			case "svg":
 				
-				bitmapData = ImageHelper.rasterizeSVG (new SVG (File.getContent (icon.path)), width, height, backgroundColor);
+				image = ImageHelper.rasterizeSVG (null /*new SVG (File.getContent (icon.path))*/, width, height, backgroundColor);
 			
 		}
 		
-		return bitmapData;*/
+		return image;
 		
 	}
    
@@ -412,6 +411,6 @@ class IconHelper {
 		return out.getBytes ();
 		
 	}
-		
-
+	
+	
 }

@@ -34,20 +34,14 @@ class ImageHelper {
 	
 	public static function resizeImage (image:Image, width:Int, height:Int):Image {
 		
-		/*
-		if (bitmapData.width == width && bitmapData.height == height) {
+		if (image.width == width && image.height == height) {
 			
-			return bitmapData;
+			return image;
 			
 		}
 		
-		var matrix = new Matrix ();
-		matrix.scale (width / bitmapData.width, height / bitmapData.height);
+		image.resize (width, height);
 		
-		var data = new BitmapData (width, height, true, 0x00FFFFFF);
-		data.draw (bitmapData, matrix, null, null, null, true);
-		
-		return data;*/
 		return image;
 		
 	}
