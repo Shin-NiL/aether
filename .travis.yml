@@ -36,7 +36,7 @@ script:
   - haxelib run aether rebuild tools
   - haxelib run aether
   - haxelib run aether help
-  - haxelib run aether create openfl:project TestProject
+  - haxelib run aether create lime:project TestProject
   - haxelib run aether display TestProject flash
   - haxelib run aether display TestProject windows
   - haxelib run aether display TestProject mac
