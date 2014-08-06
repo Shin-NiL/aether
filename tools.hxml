@@ -1,6 +1,7 @@
 -main CommandLineTools
 -neko tools.n
 -cp src
+-D disable-cffi
 -lib lime
 -lib format
 -lib svg
