@@ -674,6 +674,17 @@ class HXProject {
 	}
 	
 	
+	private function patchCompatibility (context:Dynamic, haxelib:Haxelib, version:String):Void {
+		
+		if (haxelib.name == "openfl") {
+			
+			if (app.preloader == "") app.preloader = "NMEPreloader";
+			
+		}
+		
+	}
+	
+	
 	public function path (value:String):Void {
 		
 		if (host == Platform.WINDOWS) {
@@ -941,10 +952,17 @@ class HXProject {
 							
 							var haxelib = new Haxelib (arg.substr (3));
 							var path = PathHelper.getHaxelib (haxelib);
+							var version = getHaxelibVersion (haxelib);
 							
 							if (path != null) {
 								
-								compilerFlags = ArrayHelper.concatUnique (compilerFlags, [ "-D " + haxelib.name + "=" + getHaxelibVersion (haxelib) ], true);
+								if (haxelib.name == "openfl" && Std.parseInt (version.charAt (0)) < 3) {
+									
+									patchCompatibility (context, haxelib, version);
+									
+								}
+								
+								compilerFlags = ArrayHelper.concatUnique (compilerFlags, [ "-D " + haxelib.name + "=" + version ], true);
 								
 							}
 							
@@ -1123,7 +1141,7 @@ class HXProject {
 			}
 			
 		}
-
+		
 		context.config = configData.config;
 		
 		return context;
