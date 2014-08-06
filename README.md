@@ -1,11 +1,7 @@
-[![Stories in Ready](https://badge.waffle.io/openfl/aether.png?label=ready&title=Ready)](https://waffle.io/openfl/aether)
+[![Stories in Ready](https://badge.waffle.io/openfl/aether.png?label=ready&title=Ready)](https://waffle.io/openfl/aether) [![Build Status](https://travis-ci.org/openfl/aether.png)](https://travis-ci.org/openfl/aether)
+
 aether
 ==========
-[![Build Status](https://travis-ci.org/openfl/aether.png)](https://travis-ci.org/openfl/aether)
-
-
-Introduction
--------
 
 Aether is a common set of build tools for Haxe projects. Aether helps manage assets, asset libraries, 
 binaries, icon generation and other aspects of the update, build, package, install and run process
