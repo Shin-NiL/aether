@@ -5,7 +5,7 @@
 	"tags": [],
 	"description": "Command-line tools for Haxe projects",
 	"version": "1.6.0",
-	"releasenote": "Fix opening of files with spaces (Windows)",
+	"releasenote": "Support for external platform targets, no NDLL dependency",
 	"contributors": [ "singmajesty" ],
 	"dependencies": {}
 }

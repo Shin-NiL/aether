@@ -462,7 +462,9 @@ class FlashHelper {
 		try {
 			
 			var input = File.read (targetPath, true);
+			
 			if (input != null) {
+				
 				var reader = new Reader (input);
 				var swf = reader.read ();
 				input.close();
@@ -472,7 +474,7 @@ class FlashHelper {
 				
 				for (tag in swf.tags) {
 					
-					var name = Type.enumConstructor(tag);
+					var name = Type.enumConstructor (tag);
 					
 					if (name == "TShowFrame" && !inserted && assets.length > 0) {
 						
@@ -513,8 +515,11 @@ class FlashHelper {
 				}
 				
 			} else {
-				trace ("Embedding assets failed! We encountered an error. Does '"+targetPath+"' exist?");
+				
+				trace ("Embedding assets failed! We encountered an error. Does '" + targetPath + "' exist?");
+				
 			}
+			
 		} catch (e:Dynamic) {
 			
 			trace ("Embedding assets failed! We encountered an error accessing '" + targetPath + "': " + e);
