@@ -575,7 +575,12 @@ class FlashHelper {
 						
 					}
 					
-				} catch (e:Dynamic) {}
+				} catch (e:Dynamic) {
+					
+					Sys.println ("Warning: Could not access \"" + asset.sourcePath + "\", does the file exist?");
+					ignoreAsset = true;
+					
+				}
 				
 				if ((asset.type == SOUND || asset.type == MUSIC) && Path.extension (asset.sourcePath) == "ogg") {
 					
