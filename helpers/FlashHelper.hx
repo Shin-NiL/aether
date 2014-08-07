@@ -531,9 +531,43 @@ class FlashHelper {
 	}*/
 	
 	
+	private static function compileSWC (project:HXProject, embed:String, id:Int):Void {
+		
+		var destination = project.app.path + "/flash/obj";
+		PathHelper.mkdir (destination);
+		
+		var label = (id > 0 ? Std.string (id + 1) : "");
+		
+		File.saveContent (destination + "/EmbeddedAssets" + label + ".hx", embed);
+		var args = [ "EmbeddedAssets" + label, "-cp", destination, "-D", "swf-preloader-frame", "-swf", destination + "/assets" + label + ".swf" ];
+		
+		if (id == 0) {
+			
+			var header = args.push ("-swf-header");
+			args.push ((project.window.width == 0 ? 800 : project.window.width) + ":" + (project.window.height == 0 ? 500 : project.window.height) + ":" + project.window.fps + ":" + StringTools.hex (project.window.background, 6));
+			
+		} else {
+			
+			// Have to daisy-chain it to fix Haxe compiler issue
+			
+			args.push ("-swf-lib");
+			args.push (destination + "/assets" + (id > 1 ? Std.string (id) : "") + ".swf");
+			args.push ("-D");
+			args.push ("flash-use-stage");
+			
+		}
+		
+		ProcessHelper.runCommand ("", "haxe", args);
+		
+	}
+	
+	
 	public static function embedAssets (project:HXProject):Bool {
 		
 		var embed = "";
+		var maxSize = 1024 * 1024 * 16;
+		var currentSize = 0;
+		var id = 0;
 		
 		for (asset in project.assets) {
 			
@@ -562,7 +596,6 @@ class FlashHelper {
 				}
 				
 				var ignoreAsset = false;
-				var maxSize = 1024 * 1024 * 16;
 				
 				try {
 					
@@ -572,6 +605,20 @@ class FlashHelper {
 						
 						Sys.println ("Warning: Cannot embed large file \"" + asset.sourcePath + "\" (>16MB)");
 						ignoreAsset = true;
+						
+					} else {
+						
+						if (currentSize + stat.size >= maxSize) {
+							
+							compileSWC (project, embed, id);
+							
+							id++;
+							currentSize = 0;
+							embed = "";
+							
+						}
+						
+						currentSize += stat.size;
 						
 					}
 					
@@ -613,25 +660,13 @@ class FlashHelper {
 		
 		if (embed != "") {
 			
-			var destination = project.app.path + "/flash/obj";
-			PathHelper.mkdir (destination);
+			compileSWC (project, embed, id);
 			
-			var file = "import flash.display.Sprite;\n\n";
-			file += "class EmbeddedAssets extends Sprite {\n\n";
-			file += "\t\n\tpublic function new () {\n\t\t\n";
-			file += "\t\tsuper ();\n\t\t\n";
-			file += "\t\tvar hi = __ASSET__sounds_3_mp3;\n";
-			file += "\t}\n\t\n";
-			file += "}\n\n";
-			file += embed;
+		}
+		
+		if (embed != "" || id > 0) {
 			
-			File.saveContent (destination + "/EmbeddedAssets.hx", embed);
-			
-			var header = (project.window.width == 0 ? 800 : project.window.width) + ":" + (project.window.height == 0 ? 500 : project.window.height) + ":" + project.window.fps + ":" + StringTools.hex (project.window.background, 6);
-			
-			ProcessHelper.runCommand ("", "haxe", [ "EmbeddedAssets", "-cp", destination, "-swf-header", header, "-D", "swf-preloader-frame", "-swf", destination + "/assets.swc" ]);
-			
-			project.haxeflags.push ("-swf-lib " + destination + "/assets.swc");
+			project.haxeflags.push ("-swf-lib " + project.app.path + "/flash/obj/assets" + (id > 0 ? Std.string (id + 1) : "") + ".swf");
 			project.haxedefs.set ("flash-use-stage", "");
 			
 			return true;
