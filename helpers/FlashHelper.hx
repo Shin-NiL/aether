@@ -24,10 +24,10 @@ import sys.io.FileSeek;
 class FlashHelper {
 	
 	
-	private static var swfAssetID = 1000;
+	//private static var swfAssetID = 1000;
 	
 	
-	private static function embedAsset (inAsset:Asset, packageName:String, outTags:Array<SWFTag>) {
+	/*private static function embedAsset (inAsset:Asset, packageName:String, outTags:Array<SWFTag>) {
 		
 		var embed = inAsset.embed;
 		var name = inAsset.sourcePath;
@@ -298,7 +298,7 @@ class FlashHelper {
 			return false;
 			//var font = Font.load (src);
 			
-			/*
+			#if false
 			
 			var glyphs = new Array <Font2GlyphData> ();
 			var glyph_layout = new Array <FontLayoutGlyphData> ();
@@ -416,7 +416,9 @@ class FlashHelper {
 					glyphs:     glyph_layout,
 					kerning:    kerning
 				}
-			})) );*/
+			})) );
+			
+			#end
 			
 		} else {
 			
@@ -454,10 +456,10 @@ class FlashHelper {
 		
 		return true;
 		
-	}
+	}*/
 	
 	
-	public static function embedAssets (targetPath:String, assets:Array <Asset>, packageName:String = ""):Void {
+	/*public static function embedAssets (targetPath:String, assets:Array <Asset>, packageName:String = ""):Void {
 		
 		try {
 			
@@ -526,14 +528,107 @@ class FlashHelper {
 			
 		}
 		
+	}*/
+	
+	
+	public static function embedAssets (project:HXProject):Bool {
+		
+		var embed = "";
+		
+		for (asset in project.assets) {
+			
+			if (asset.embed == null || asset.embed == true) {
+				
+				LogHelper.info ("", " - \x1b[1mEmbedding asset:\x1b[0m \x1b[3;37m(" + asset.type + ")\x1b[0m " + asset.sourcePath);
+				
+				var flashClass = switch (asset.type) {
+					
+					case MUSIC: "flash.media.Sound";
+					case SOUND: "flash.media.Sound";
+					case IMAGE: "flash.display.BitmapData";
+					case FONT: "flash.text.Font";
+					default: "flash.utils.ByteArray";
+					
+				}
+				
+				var tagName = switch (asset.type) {
+					
+					case MUSIC: "@:sound";
+					case SOUND: "@:sound";
+					case IMAGE: "@:bitmap";
+					case FONT: "@:font";
+					default: "@:file";
+					
+				}
+				
+				var ignoreAsset = false;
+				
+				if ((asset.type == SOUND || asset.type == MUSIC) && Path.extension (asset.sourcePath) == "ogg") {
+					
+					Sys.println ("Warning: Skipping unsupported OGG file \"" + asset.sourcePath + "\"");
+					ignoreAsset = true;
+					
+				}
+				
+				if (ignoreAsset) {
+					
+					embed += "@:keep class __ASSET__" + asset.flatName + " extends " + flashClass + " { }\n";
+					
+				} else {
+					
+					if (asset.type == IMAGE) {
+						
+						embed += "@:keep " + tagName + "('" + asset.sourcePath + "') class __ASSET__" + asset.flatName + " extends " + flashClass + " { public function new () { super (0, 0, true, 0); } }\n";
+						
+					} else {
+						
+						embed += "@:keep " + tagName + "('" + asset.sourcePath + "') class __ASSET__" + asset.flatName + " extends " + flashClass + " { }\n";
+						
+					}
+					
+				}
+				
+			}
+			
+		}
+		
+		if (embed != "") {
+			
+			var destination = project.app.path + "/flash/obj";
+			PathHelper.mkdir (destination);
+			
+			var file = "import flash.display.Sprite;\n\n";
+			file += "class EmbeddedAssets extends Sprite {\n\n";
+			file += "\t\n\tpublic function new () {\n\t\t\n";
+			file += "\t\tsuper ();\n\t\t\n";
+			file += "\t\tvar hi = __ASSET__sounds_3_mp3;\n";
+			file += "\t}\n\t\n";
+			file += "}\n\n";
+			file += embed;
+			
+			File.saveContent (destination + "/EmbeddedAssets.hx", embed);
+			
+			var header = (project.window.width == 0 ? 800 : project.window.width) + ":" + (project.window.height == 0 ? 500 : project.window.height) + ":" + project.window.fps + ":" + StringTools.hex (project.window.background, 6);
+			
+			ProcessHelper.runCommand ("", "haxe", [ "EmbeddedAssets", "-cp", destination, "-swf-header", header, "-D", "swf-preloader-frame", "-swf", destination + "/assets.swc" ]);
+			
+			project.haxeflags.push ("-swf-lib " + destination + "/assets.swc");
+			project.haxedefs.set ("flash-use-stage", "");
+			
+			return true;
+			
+		}
+		
+		return false;
+		
 	}
 	
 	
-	private static function nextAssetID () {
+	/*private static function nextAssetID () {
 		
 		return swfAssetID++;
 		
-	}
+	}*/
 	
 	
 	public static function run (project:HXProject, workingDirectory:String, targetPath:String):Void {

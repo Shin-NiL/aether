@@ -2,12 +2,14 @@ package platforms;
 
 
 import haxe.io.Path;
+import haxe.Json;
 import haxe.Template;
 import helpers.FileHelper;
 import helpers.FlashHelper;
 import helpers.PathHelper;
 import helpers.ProcessHelper;
 import project.AssetType;
+import project.Haxelib;
 import project.HXProject;
 import project.PlatformTarget;
 import sys.io.File;
@@ -15,6 +17,9 @@ import sys.FileSystem;
 
 
 class FlashPlatform extends PlatformTarget {
+	
+	
+	private var embedded:Bool;
 	
 	
 	public function new (command:String, _project:HXProject, targetFlags:Map <String, String>) {
@@ -40,9 +45,29 @@ class FlashPlatform extends PlatformTarget {
 			
 		}
 		
-		var hxml = project.app.path + "/flash/haxe/" + type + ".hxml";
-		
-		ProcessHelper.runCommand ("", "haxe", [ hxml ] );
+		if (embedded) {
+			
+			var hxml = File.getContent (project.app.path + "/flash/haxe/" + type + ".hxml");
+			hxml = StringTools.replace (hxml, "\r\n", "\n");
+			hxml = StringTools.replace (hxml, "\n", " ");
+			
+			var args = hxml.split (" ");
+			var strip;
+			
+			while ((strip = args.indexOf ("-swf-header")) > -1) {
+				
+				args.splice (strip, 2);
+				
+			}
+			
+			ProcessHelper.runCommand ("", "haxe", args);
+			
+		} else {
+			
+			var hxml = project.app.path + "/flash/haxe/" + type + ".hxml";
+			ProcessHelper.runCommand ("", "haxe", [ hxml ] );
+			
+		}
 		
 		/*var usesOpenFL = false;
 		
@@ -56,11 +81,11 @@ class FlashPlatform extends PlatformTarget {
 			
 		}
 		
-		if (usesOpenFL) {*/
+		if (usesOpenFL) {
 			
 			FlashHelper.embedAssets (destination + "/" + project.app.file + ".swf", project.assets);
 			
-		//}
+		}*/
 		
 	}
 	
@@ -167,6 +192,8 @@ class FlashPlatform extends PlatformTarget {
 		var destination = project.app.path + "/flash/bin/";
 		PathHelper.mkdir (destination);
 		
+		embedded = FlashHelper.embedAssets (project);
+		
 		var context = generateContext ();
 		
 		FileHelper.recursiveCopyTemplate (project.templatePaths, "haxe", project.app.path + "/flash/haxe", context);
@@ -185,17 +212,32 @@ class FlashPlatform extends PlatformTarget {
 				
 			}
 			
+			if (haxelib.name == "openfl") {
+				
+				try {
+					
+					var json = Json.parse (File.getContent (PathHelper.getHaxelib (haxelib) + "/haxelib.json"));
+					if (Std.parseInt (json.version) < 3) {
+						
+						FileHelper.copyFile (PathHelper.getHaxelib (new Haxelib ("aether")) + "/templates/compatibility/DefaultAssetLibrary.hx", project.app.path + "/flash/haxe/DefaultAssetLibrary.hx", context);
+						
+					}
+					
+				} catch (e:Dynamic) {}
+				
+			}
+			
 		}
-
+		
 		if (project.targetFlags.exists ("web") || project.app.url != "") {
 			
 			PathHelper.mkdir (destination);
 			FileHelper.recursiveCopyTemplate (project.templatePaths, "flash/templates/web", destination, generateContext ());
-
+			
 		}
 		
 		for (asset in project.assets) {
-				
+			
 			if (asset.type == AssetType.TEMPLATE || asset.embed == false || !usesNME) {
 				
 				var path = PathHelper.combine (destination, asset.targetPath);
