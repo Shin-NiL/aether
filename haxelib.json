@@ -4,8 +4,8 @@
 	"license": "MIT",
 	"tags": [],
 	"description": "Command-line tools for Haxe projects",
-	"version": "1.6.0",
-	"releasenote": "Support for external platform targets, no NDLL dependency",
+	"version": "1.6.1",
+	"releasenote": "Change Flash embed method to rely on Haxe",
 	"contributors": [ "singmajesty" ],
 	"dependencies": {}
 }
