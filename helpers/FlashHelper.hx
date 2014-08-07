@@ -562,6 +562,20 @@ class FlashHelper {
 				}
 				
 				var ignoreAsset = false;
+				var maxSize = 1024 * 1024 * 16;
+				
+				try {
+					
+					var stat = FileSystem.stat (asset.sourcePath);
+					
+					if (stat.size >= maxSize) {
+						
+						Sys.println ("Warning: Cannot embed large file \"" + asset.sourcePath + "\" (>16MB)");
+						ignoreAsset = true;
+						
+					}
+					
+				} catch (e:Dynamic) {}
 				
 				if ((asset.type == SOUND || asset.type == MUSIC) && Path.extension (asset.sourcePath) == "ogg") {
 					
