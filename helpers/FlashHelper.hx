@@ -538,8 +538,8 @@ class FlashHelper {
 		
 		var label = (id > 0 ? Std.string (id + 1) : "");
 		
-		File.saveContent (destination + "/EmbeddedAssets" + label + ".hx", embed);
-		var args = [ "EmbeddedAssets" + label, "-cp", destination, "-D", "swf-preloader-frame", "-swf", destination + "/assets" + label + ".swf" ];
+		File.saveContent (destination + "/EmbeddedAssets.hx", embed);
+		var args = [ "EmbeddedAssets", "-cp", destination, "-D", "swf-preloader-frame", "-swf", destination + "/assets.swf" ];
 		
 		if (id == 0) {
 			
@@ -548,16 +548,32 @@ class FlashHelper {
 			
 		} else {
 			
+			if (FileSystem.exists (destination + "/assets.swf")) {
+				
+				FileHelper.copyFile (destination + "/assets.swf", destination + "/.assets.swf");
+				
+			}
+			
 			// Have to daisy-chain it to fix Haxe compiler issue
 			
 			args.push ("-swf-lib");
-			args.push (destination + "/assets" + (id > 1 ? Std.string (id) : "") + ".swf");
+			args.push (destination + "/.assets.swf");
 			args.push ("-D");
 			args.push ("flash-use-stage");
 			
 		}
 		
 		ProcessHelper.runCommand ("", "haxe", args);
+		
+		if (FileSystem.exists (destination + "/.assets.swf")) {
+			
+			try {
+				
+				FileSystem.deleteFile (destination + "/.assets.swf");
+				
+			} catch (e:Dynamic) {}
+			
+		}
 		
 	}
 	
@@ -666,7 +682,7 @@ class FlashHelper {
 		
 		if (embed != "" || id > 0) {
 			
-			project.haxeflags.push ("-swf-lib " + project.app.path + "/flash/obj/assets" + (id > 0 ? Std.string (id + 1) : "") + ".swf");
+			project.haxeflags.push ("-swf-lib " + project.app.path + "/flash/obj/assets.swf");
 			project.haxedefs.set ("flash-use-stage", "");
 			
 			return true;
