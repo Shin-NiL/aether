@@ -102,6 +102,12 @@ class ProjectXMLParser extends HXProject {
 			
 		}
 		
+		if (targetFlags.exists ("static")) {
+			
+			defines.set ("static_link", "1");
+			
+		}
+		
 		if (defines.exists ("SWF_PLAYER")) {
 			
 			environment.set ("SWF_PLAYER", defines.get ("SWF_PLAYER"));

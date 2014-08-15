@@ -1092,6 +1092,11 @@ class RunScript {
 							
 							flags.set ("debug", "");
 						
+						case "-static":
+							
+							flags.set ("static", "");
+							defines.push ("-Dstatic_link");
+						
 						case "-nocolor":
 							
 							LogHelper.enableColor = false;
@@ -1229,6 +1234,11 @@ class RunScript {
 					case "-d", "-debug":
 						
 						flags.set ("debug", "");
+					
+					case "-static":
+							
+						flags.set ("static", "");
+						defines.push ("-Dstatic_link");
 					
 					case "-v", "-verbose":
 						

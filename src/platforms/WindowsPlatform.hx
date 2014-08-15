@@ -76,9 +76,13 @@ class WindowsPlatform extends PlatformTarget {
 			
 		}
 		
-		for (ndll in project.ndlls) {
+		if (!project.targetFlags.exists ("static")) {
 			
-			FileHelper.copyLibrary (project, ndll, "Windows", "", (ndll.haxelib != null && (ndll.haxelib.name == "hxcpp" || ndll.haxelib.name == "hxlibc")) ? ".dll" : ".ndll", applicationDirectory, project.debug);
+			for (ndll in project.ndlls) {
+				
+				FileHelper.copyLibrary (project, ndll, "Windows", "", (ndll.haxelib != null && (ndll.haxelib.name == "hxcpp" || ndll.haxelib.name == "hxlibc")) ? ".dll" : ".ndll", applicationDirectory, project.debug);
+				
+			}
 			
 		}
 		
@@ -101,10 +105,22 @@ class WindowsPlatform extends PlatformTarget {
 				
 			}
 			
-			ProcessHelper.runCommand ("", "haxe", haxeArgs);
-			CPPHelper.compile (project, targetDirectory + "/obj", flags);
-			
-			FileHelper.copyFile (targetDirectory + "/obj/ApplicationMain" + (project.debug ? "-debug" : "") + ".exe", executablePath);
+			if (!project.targetFlags.exists ("static")) {
+				
+				ProcessHelper.runCommand ("", "haxe", haxeArgs);
+				CPPHelper.compile (project, targetDirectory + "/obj", flags);
+				
+				FileHelper.copyFile (targetDirectory + "/obj/ApplicationMain" + (project.debug ? "-debug" : "") + ".exe", executablePath);
+				
+			} else {
+				
+				ProcessHelper.runCommand ("", "haxe", haxeArgs.concat ([ "-D", "static_link" ]));
+				CPPHelper.compile (project, targetDirectory + "/obj", flags.concat ([ "-Dstatic_link" ]));
+				CPPHelper.compile (project, targetDirectory + "/obj", flags, "BuildMain.xml");
+				
+				FileHelper.copyFile (targetDirectory + "/obj/Main" + (project.debug ? "-debug" : "") + ".exe", executablePath);
+				
+			}
 			
 			var iconPath = PathHelper.combine (applicationDirectory, "icon.ico");
 			
@@ -191,6 +207,18 @@ class WindowsPlatform extends PlatformTarget {
 		
 		var context = generateContext ();
 		
+		for (i in 0...project.ndlls.length) {
+			
+			var ndll = project.ndlls[i];
+			
+			if (ndll.path == null || ndll.path == "") {
+				
+				context.ndlls[i].path = PathHelper.getLibraryPath (ndll, "Windows", "lib", ".lib", project.debug);
+				
+			}
+			
+		}
+		
 		PathHelper.mkdir (targetDirectory);
 		PathHelper.mkdir (targetDirectory + "/obj");
 		PathHelper.mkdir (targetDirectory + "/haxe");
@@ -200,6 +228,12 @@ class WindowsPlatform extends PlatformTarget {
 		
 		FileHelper.recursiveCopyTemplate (project.templatePaths, "haxe", targetDirectory + "/haxe", context);
 		FileHelper.recursiveCopyTemplate (project.templatePaths, (useNeko ? "neko" : "cpp") + "/hxml", targetDirectory + "/haxe", context);
+		
+		if (project.targetFlags.exists ("static")) {
+			
+			FileHelper.recursiveCopyTemplate (project.templatePaths, "cpp/static", targetDirectory + "/obj", context);
+			
+		}
 		
 		/*if (IconHelper.createIcon (project.icons, 32, 32, PathHelper.combine (applicationDirectory, "icon.png"))) {
 			

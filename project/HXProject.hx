@@ -6,6 +6,7 @@ import haxe.Json;
 import haxe.Serializer;
 import haxe.Unserializer;
 import helpers.ArrayHelper;
+import helpers.CompatibilityHelper;
 import helpers.LogHelper;
 import helpers.ObjectHelper;
 import helpers.PathHelper;
@@ -674,17 +675,6 @@ class HXProject {
 	}
 	
 	
-	private function patchCompatibility (context:Dynamic, haxelib:Haxelib, version:String):Void {
-		
-		if (haxelib.name == "openfl") {
-			
-			if (app.preloader == "") app.preloader = "NMEPreloader";
-			
-		}
-		
-	}
-	
-	
 	public function path (value:String):Void {
 		
 		if (host == Platform.WINDOWS) {
@@ -956,12 +946,7 @@ class HXProject {
 							
 							if (path != null) {
 								
-								if (haxelib.name == "openfl" && Std.parseInt (version.charAt (0)) < 3) {
-									
-									patchCompatibility (context, haxelib, version);
-									
-								}
-								
+								CompatibilityHelper.patchProject (this, haxelib, version);
 								compilerFlags = ArrayHelper.concatUnique (compilerFlags, [ "-D " + haxelib.name + "=" + version ], true);
 								
 							}

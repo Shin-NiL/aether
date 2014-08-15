@@ -4,6 +4,7 @@ package platforms;
 import haxe.io.Path;
 import haxe.Json;
 import haxe.Template;
+import helpers.CompatibilityHelper;
 import helpers.FileHelper;
 import helpers.FlashHelper;
 import helpers.PathHelper;
@@ -214,16 +215,7 @@ class FlashPlatform extends PlatformTarget {
 			
 			if (haxelib.name == "openfl") {
 				
-				try {
-					
-					var json = Json.parse (File.getContent (PathHelper.getHaxelib (haxelib) + "/haxelib.json"));
-					if (Std.parseInt (json.version) < 3) {
-						
-						FileHelper.copyFile (PathHelper.getHaxelib (new Haxelib ("aether")) + "/templates/compatibility/DefaultAssetLibrary.hx", project.app.path + "/flash/haxe/DefaultAssetLibrary.hx", context);
-						
-					}
-					
-				} catch (e:Dynamic) {}
+				CompatibilityHelper.patchAssetLibrary (project, haxelib, project.app.path + "/flash/haxe/DefaultAssetLibrary.hx", context);
 				
 			}
 			
