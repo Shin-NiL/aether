@@ -207,13 +207,17 @@ class WindowsPlatform extends PlatformTarget {
 		
 		var context = generateContext ();
 		
-		for (i in 0...project.ndlls.length) {
+		if (project.targetFlags.exists ("static")) {
 			
-			var ndll = project.ndlls[i];
-			
-			if (ndll.path == null || ndll.path == "") {
+			for (i in 0...project.ndlls.length) {
 				
-				context.ndlls[i].path = PathHelper.getLibraryPath (ndll, "Windows", "lib", ".lib", project.debug);
+				var ndll = project.ndlls[i];
+				
+				if (ndll.path == null || ndll.path == "") {
+					
+					context.ndlls[i].path = PathHelper.getLibraryPath (ndll, "Windows", "lib", ".lib", project.debug);
+					
+				}
 				
 			}
 			
