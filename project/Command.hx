@@ -10,5 +10,6 @@ enum Command {
 	RUN;
 	TEST;
 	TRACE;
+	PUBLISH;
 	
 }

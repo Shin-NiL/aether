@@ -3,6 +3,8 @@ package project;
 
 import helpers.ArrayHelper;
 import helpers.ObjectHelper;
+import helpers.FirefoxOSHelper.DeviceType;
+import helpers.FirefoxOSHelper.PremiumType;
 
 
 class PlatformConfig {
@@ -11,6 +13,7 @@ class PlatformConfig {
 	public var android:AndroidConfig;
 	public var cpp:CPPConfig;
 	public var ios:IOSConfig;
+	public var firefoxos:FirefoxOSConfig;
 	
 	private static var defaultAndroid:AndroidConfig = {
 		
@@ -38,6 +41,18 @@ class PlatformConfig {
 		prerenderedIcon: false
 		
 	};
+
+	private static var defaultFirefoxOS:FirefoxOSConfig = {
+		description: "",
+		privacyPolicy: "",
+		categories: [],
+		applicationURL: "",
+		supportURL: "",
+		supportEmail: "",
+		deviceTypes: [DeviceType.FirefoxOS],
+		premiumType: PremiumType.Free,
+		price: 0.0,
+	}
 	
 	
 	public function new () {
@@ -45,10 +60,12 @@ class PlatformConfig {
 		android = { };
 		cpp = { };
 		ios = { };
+		firefoxos = { };
 		
 		ObjectHelper.copyFields (defaultAndroid, android);
 		ObjectHelper.copyFields (defaultCPP, cpp);
 		ObjectHelper.copyFields (defaultIOS, ios);
+		ObjectHelper.copyFields (defaultFirefoxOS, firefoxos);
 		
 	}
 	
@@ -60,6 +77,7 @@ class PlatformConfig {
 		ObjectHelper.copyFields (android, copy.android);
 		ObjectHelper.copyFields (defaultCPP, copy.cpp);
 		ObjectHelper.copyFields (ios, copy.ios);
+		ObjectHelper.copyFields (firefoxos, copy.firefoxos);
 
 		copy.ios.linkerFlags = ios.linkerFlags.copy ();
 		
@@ -84,6 +102,14 @@ class PlatformConfig {
 		ObjectHelper.copyUniqueFields (config.ios, ios, defaultIOS);
 
 		ios.linkerFlags = linkerFlags;
+
+		var categories = ArrayHelper.concatUnique (firefoxos.categories, config.firefoxos.categories);
+		var deviceTypes = ArrayHelper.concatUnique (firefoxos.deviceTypes, config.firefoxos.deviceTypes);
+		
+		ObjectHelper.copyUniqueFields (config.firefoxos, firefoxos, defaultFirefoxOS);
+
+		firefoxos.categories = categories;
+		firefoxos.deviceTypes = deviceTypes;
 		
 	}
 	
@@ -93,6 +119,7 @@ class PlatformConfig {
 		ObjectHelper.copyMissingFields (android, defaultAndroid);
 		ObjectHelper.copyMissingFields (cpp, defaultCPP);
 		ObjectHelper.copyMissingFields (ios, defaultIOS);
+		ObjectHelper.copyMissingFields (firefoxos, defaultFirefoxOS);
 		
 	}
 	
@@ -129,6 +156,17 @@ typedef IOSConfig = {
 	
 }
 
+typedef FirefoxOSConfig = {
+	@:optional var description:String;
+	@:optional var privacyPolicy:String;
+	@:optional var categories:Array<String>;
+	@:optional var applicationURL:String;
+	@:optional var supportURL:String;
+	@:optional var supportEmail:String;
+	@:optional var deviceTypes:Array<DeviceType>;
+	@:optional var premiumType:PremiumType;
+	@:optional var price:Float;
+}
 
 enum IOSConfigDevice {
 	

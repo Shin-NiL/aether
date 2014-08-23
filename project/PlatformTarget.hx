@@ -43,17 +43,24 @@ class PlatformTarget {
 			
 		}
 		
-		if (!Reflect.hasField (metaFields.update, "ignore") && (command == "update" || command == "build" || command == "test")) {
+		if (!Reflect.hasField (metaFields.update, "ignore") && (command == "update" || command == "build" || command == "test" || command == "publish")) {
 			
 			LogHelper.info ("", "\n\x1b[36;1mRunning command: UPDATE\x1b[0m");
 			update ();
 			
 		}
 		
-		if (!Reflect.hasField (metaFields.build, "ignore") && (command == "build" || command == "test")) {
+		if (!Reflect.hasField (metaFields.build, "ignore") && (command == "build" || command == "test" || command == "publish")) {
 			
 			LogHelper.info ("", "\n\x1b[36;1mRunning command: BUILD\x1b[0m");
 			build ();
+			
+		}
+
+		if (!Reflect.hasField (metaFields.publish, "ignore") && (command == "publish")) {
+			
+			LogHelper.info ("", "\n\x1b[36;1mRunning command: PUBLISH\x1b[0m");
+			publish ();
 			
 		}
 		
@@ -100,6 +107,7 @@ class PlatformTarget {
 	@ignore public function trace ():Void {}
 	@ignore public function uninstall ():Void {}
 	@ignore public function update ():Void {}
+	@ignore public function publish ():Void {}
 	
 	
 }

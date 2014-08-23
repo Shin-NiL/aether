@@ -96,7 +96,7 @@ class CommandLineTools {
 				
 				updateLibrary ();
 			
-			case "clean", "update", "display", "build", "run", "rerun", /*"install",*/ "uninstall", "trace", "test":
+			case "clean", "update", "display", "build", "run", "rerun", /*"install",*/ "uninstall", "trace", "test", "publish":
 				
 				if (words.length < 1 || words.length > 2) {
 					
@@ -125,7 +125,7 @@ class CommandLineTools {
 		var project = initializeProject ();
 		var command = project.command.toLowerCase ();
 		
-		if (command == "update" || command == "build" || command == "test") {
+		if (command == "update" || command == "build" || command == "test" || command == "publish") {
 			
 			AssetHelper.processLibraries (project);
 			
