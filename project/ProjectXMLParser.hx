@@ -1476,7 +1476,7 @@ class ProjectXMLParser extends HXProject {
 
 					case "firefoxos":
 
-						parseFirefoxOSElement(element);
+						parseFirefoxOSElement(element, extensionPath);
 
 					case "config": 
 
@@ -1576,7 +1576,7 @@ class ProjectXMLParser extends HXProject {
 		
 	}
 
-	private function parseFirefoxOSElement(e:Fast):Void {
+	private function parseFirefoxOSElement(e:Fast, extensionPath:String = ""):Void {
 
 		var hasInApp = e.has.inAppPurchases && e.att.inAppPurchases == "true";
 
@@ -1642,6 +1642,26 @@ class ProjectXMLParser extends HXProject {
 			}
 
 			config.firefoxos.categories = categories;
+
+		}
+
+		if (e.hasNode.screenshots) {
+
+			var screenshots:Array<String> = [];
+			var scNode = e.node.screenshots;
+			var path = "";
+			for(node in scNode.elements) {
+
+				if (node.name == "screenshot" && node.has.path) {
+
+					path = PathHelper.combine(extensionPath, node.att.path);
+					screenshots.push(path);
+
+				}
+
+			}
+
+			config.firefoxos.screenshots = screenshots;
 
 		}
 

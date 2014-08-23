@@ -52,6 +52,7 @@ class PlatformConfig {
 		deviceTypes: [DeviceType.FirefoxOS],
 		premiumType: PremiumType.Free,
 		price: 0.0,
+		screenshots: [],
 	}
 	
 	
@@ -166,6 +167,7 @@ typedef FirefoxOSConfig = {
 	@:optional var deviceTypes:Array<DeviceType>;
 	@:optional var premiumType:PremiumType;
 	@:optional var price:Float;
+	@:optional var screenshots:Array<String>;
 }
 
 enum IOSConfigDevice {
