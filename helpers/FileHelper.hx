@@ -348,9 +348,9 @@ class FileHelper {
 	}
 	
 	
-	public static function recursiveCopyTemplate (templatePaths:Array <String>, source:String, destination:String, context:Dynamic = null, process:Bool = true) {
+	public static function recursiveCopyTemplate (templatePaths:Array <String>, source:String, destination:String, context:Dynamic = null, process:Bool = true, warnIfNotFound:Bool = true) {
 		
-		var paths = PathHelper.findTemplates (templatePaths, source);
+		var paths = PathHelper.findTemplates (templatePaths, source, warnIfNotFound);
 		
 		for (path in paths) {
 			

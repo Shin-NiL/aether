@@ -199,7 +199,7 @@ class FlashPlatform extends PlatformTarget {
 		
 		FileHelper.recursiveCopyTemplate (project.templatePaths, "haxe", project.app.path + "/flash/haxe", context);
 		FileHelper.recursiveCopyTemplate (project.templatePaths, "flash/hxml", project.app.path + "/flash/haxe", context);
-		FileHelper.recursiveCopyTemplate (project.templatePaths, "flash/haxe", project.app.path + "/flash/haxe", context);
+		FileHelper.recursiveCopyTemplate (project.templatePaths, "flash/haxe", project.app.path + "/flash/haxe", context, true, false);
 		
 		//SWFHelper.generateSWFClasses (project, project.app.path + "/flash/haxe");
 		
