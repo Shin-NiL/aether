@@ -180,6 +180,7 @@ class WebOSPlatform extends PlatformTarget {
 	
 	
 	@ignore public override function uninstall ():Void {}
+	@ignore public override function publish ():Void {}
 	
 	
 }

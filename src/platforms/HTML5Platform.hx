@@ -25,7 +25,7 @@ class HTML5Platform extends PlatformTarget {
 	
 	public function new (command:String, _project:HXProject, targetFlags:Map <String, String> ) {
 		
-		initialize (_project);
+		initialize (command, _project);
 		
 		super (command, _project, targetFlags);
 		
@@ -107,11 +107,11 @@ class HTML5Platform extends PlatformTarget {
 	}
 	
 	
-	private function initialize (project:HXProject):Void {
-		
+	private function initialize (command:String, project:HXProject):Void {
+	
 		outputDirectory = project.app.path + "/html5";
 		outputFile = outputDirectory + "/bin/" + project.app.file + ".js";
-		
+
 	}
 	
 	
@@ -271,6 +271,7 @@ class HTML5Platform extends PlatformTarget {
 	@ignore public override function install ():Void {}
 	@ignore public override function trace ():Void {}
 	@ignore public override function uninstall ():Void {}
+	@ignore public override function publish ():Void {}
 	
 	
 }

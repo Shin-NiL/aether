@@ -668,7 +668,7 @@ class ProjectXMLParser extends HXProject {
 			
 			switch (attribute) {
 				
-				case "title", "description", "package", "version", "company", "company-id", "build-number":
+				case "title", "description", "package", "version", "company", "company-id", "build-number", "company-url":
 					
 					var value = substitute (element.att.resolve (attribute));
 					
@@ -1474,6 +1474,10 @@ class ProjectXMLParser extends HXProject {
 							
 						}
 
+					case "firefoxos":
+
+						parseFirefoxOSElement(element, extensionPath);
+
 					case "config": 
 
 						configData.parse( element );
@@ -1570,6 +1574,98 @@ class ProjectXMLParser extends HXProject {
 			
 		}
 		
+	}
+
+	private function parseFirefoxOSElement(e:Fast, extensionPath:String = ""):Void {
+
+		var hasInApp = e.has.inAppPurchases && e.att.inAppPurchases == "true";
+
+		if (e.has.homepage) {
+			
+			config.firefoxos.applicationURL = e.att.homepage;
+		
+		}
+
+		if (e.has.price) {
+			
+			var price = Std.parseFloat(e.att.price);
+			config.firefoxos.price = price;
+			config.firefoxos.premiumType = price == 0 ? Free : Premium;
+
+		}
+
+		if (hasInApp) {
+
+			config.firefoxos.premiumType = config.firefoxos.price == 0 ? FreeInApp : PremiumInApp;
+
+		}
+
+		if (e.hasNode.description) {
+
+			config.firefoxos.description = StringTools.trim(e.node.description.innerData);
+			meta.description = config.firefoxos.description;
+
+		}
+		if (e.hasNode.privacyPolicy) {
+
+			config.firefoxos.privacyPolicy = StringTools.trim(e.node.privacyPolicy.innerData);
+
+		}
+
+		if (e.hasNode.support) {
+
+			var support = e.node.support;
+			if (support.has.url) {
+
+				config.firefoxos.supportURL = support.att.url;
+
+			}
+			if (support.has.email) {
+
+				config.firefoxos.supportEmail = support.att.email;
+
+			}
+
+		}
+
+		if (e.hasNode.categories) {
+
+			var categories:Array<String> = [];
+			var catNode = e.node.categories;
+			for(node in catNode.elements) {
+
+				if (node.name == "category" && node.has.name) {
+
+					categories.push(node.att.name);
+
+				}
+
+			}
+
+			config.firefoxos.categories = categories;
+
+		}
+
+		if (e.hasNode.screenshots) {
+
+			var screenshots:Array<String> = [];
+			var scNode = e.node.screenshots;
+			var path = "";
+			for(node in scNode.elements) {
+
+				if (node.name == "screenshot" && node.has.path) {
+
+					path = PathHelper.combine(extensionPath, node.att.path);
+					screenshots.push(path);
+
+				}
+
+			}
+
+			config.firefoxos.screenshots = screenshots;
+
+		}
+
 	}
 	
 	

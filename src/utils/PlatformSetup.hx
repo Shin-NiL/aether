@@ -6,6 +6,8 @@ import haxe.io.Eof;
 import haxe.io.Path;
 import haxe.zip.Reader;
 import helpers.BlackBerryHelper;
+import helpers.FirefoxOSHelper;
+import helpers.FirefoxOSHelper.MarketplaceAPI;
 import helpers.FileHelper;
 import helpers.LogHelper;
 import helpers.PathHelper;
@@ -18,6 +20,8 @@ import project.Platform;
 import sys.io.File;
 import sys.io.Process;
 import sys.FileSystem;
+
+import haxe.Json;
 
 
 class PlatformSetup {
@@ -66,24 +70,12 @@ class PlatformSetup {
 	
    static inline function readLine()
    {
-		return Sys.stdin ().readLine ();
+		return LogHelper.readLine();
    }
 	
-	private static function ask (question:String):Answer {
+	private static inline function ask (question:String, ?options:Array<String>):Answer {
 		
-		while (true) {
-			
-			LogHelper.print ("\x1b[1m" + question + "\x1b[0m \x1b[3;37m[y/n/a]\x1b[0m ? ");
-			
-			switch (readLine ()) {
-				case "n": return No;
-				case "y": return Yes;
-				case "a": return Always;
-			}
-			
-		}
-		
-		return null;
+		return LogHelper.ask (question, options);
 		
 	}
 	
@@ -397,7 +389,7 @@ class PlatformSetup {
 	
 	inline static function getChar () {
 		
-	   return Sys.getChar(false);
+	   return LogHelper.getChar ();
 	   
 	}
    
@@ -423,28 +415,7 @@ class PlatformSetup {
 	
 	private static function param (name:String, ?passwd:Bool):String {
 		
-		LogHelper.print (name + ": ");
-		
-		if (passwd) {
-			var s = new StringBuf ();
-			var c;
-			while ((c = getChar ()) != 13)
-				s.addChar (c);
-			Lib.print ("");
-			Sys.println ("");
-			
-			return s.toString ();
-		}
-		
-		try {
-			
-			return readLine ();
-			
-		} catch (e:Eof) {
-			
-			return "";
-			
-		}
+		return LogHelper.param (name, passwd);
 		
 	}
 	
@@ -477,6 +448,10 @@ class PlatformSetup {
 				//case "html5":
 					
 					//setupHTML5 ();
+
+				case "firefoxos":
+
+					setupFirefoxOS ();
 				
 				case "ios":
 					
@@ -1795,6 +1770,137 @@ class PlatformSetup {
 		
 	}
 
+	public static function setupFirefoxOS (?askServer:Bool = true, ?devServer:Bool = false):Void {
+
+		var defines = getDefines ();
+		var existsProd = defines.exists("FIREFOX_MARKETPLACE_KEY") && defines.exists("FIREFOX_MARKETPLACE_SECRET");
+		var existsDev = defines.exists("FIREFOX_MARKETPLACE_DEV_KEY") && defines.exists("FIREFOX_MARKETPLACE_DEV_SECRET");
+
+		// TODO warning about the override of the account
+
+		Lib.println("To publish your application to the Firefox Marketplace you need to setup an account.");
+		var answer = ask ("Do you want to setup an account now?", ["y", "n"]);
+
+		if(answer == No) Sys.exit(0);
+
+		var server = "";
+
+		if(askServer) {
+			Lib.println("");
+			Lib.println("First of all you need to select the server you want to setup your account.");
+			Lib.println("Each server has its own configuration and can't be shared.");
+			Lib.println("\t1. Production server (" + FirefoxOSHelper.PRODUCTION_SERVER_URL + ")");
+			Lib.println("\t2. Development server (" + FirefoxOSHelper.DEVELOPMENT_SERVER_URL + ")");
+			Lib.println("\tq. Cancel");
+			answer = ask ("Choose the server to setup your Firefox Marketplace account.", ["1", "2", "q"]);
+		} else {
+			answer = devServer ? Custom("2") : Custom("1");
+		}
+
+		switch(answer) {
+			case Custom(x):
+				switch(x) {
+					case "1": 
+						server = FirefoxOSHelper.PRODUCTION_SERVER_URL;
+						devServer = false;
+
+					case "2": 
+						server = FirefoxOSHelper.DEVELOPMENT_SERVER_URL; 
+						devServer = true;
+
+					case _: Sys.exit(0);
+				}
+			case _:
+		}
+
+		if ((existsProd && !devServer) || (existsDev && devServer)) {
+
+			Lib.println("");
+			LogHelper.warn ("You will override your account settings!");
+			answer = ask ("Are you sure?", ["y", "n"]);
+			if(answer == No) {
+				Sys.exit(0);
+			}
+
+		}
+
+		Lib.println("");
+		Lib.println("Follow this instructions once the webpage has opened:");
+		Lib.println("\t*) Create a new account or login with an existing account.");
+		Lib.println("\t*) Create a developer API key at: " + server + "/developers/api");
+		Lib.println("\t*) Choose 'Command line' as the 'Client type' and hit 'Create'.");
+		answer = ask ("Open the webpage?", ["y", "n", "s"]);
+
+		if (answer == Yes || answer.match(Custom("s"))) {
+
+			if(answer == Yes) {
+
+				ProcessHelper.openURL(server + "/developers/api");
+				Lib.println("Once the OAuth key/secret pair has been created, hit Enter.");
+				Sys.stdin().readLine();
+
+			}
+
+			var isValid = false;
+
+			Lib.println("");
+			Lib.println("Fill the following fields with the OAuth key/secret pair recently created:");
+			var key = StringTools.trim (param ("Key"));
+			var secret = StringTools.trim (param ("Secret"));
+
+			Lib.println("");
+			var marketplace = new MarketplaceAPI(key, secret, devServer);
+			var name:String = "";
+			var account:Dynamic;
+
+			do {
+
+				Lib.println("Checking...");
+				account = marketplace.getUserAccount();
+				
+				if (account != null && account.display_name != null) {
+
+					name = account.display_name;
+					isValid = true;
+
+				}
+
+				if (!isValid) {
+
+					Lib.println("");
+					Lib.println("There was a problem authenticating your account.");
+					answer = ask ("Do you want to try again?", ["y", "n"]);
+					if (answer == Yes) {
+
+						key = StringTools.trim (param ("Key"));
+						secret = StringTools.trim (param ("Secret"));
+
+						marketplace.client.consumer.key = key;
+						marketplace.client.consumer.secret = secret;
+
+					} else {
+
+						marketplace.close();
+						Sys.exit(0);
+
+					}
+
+				}
+			} while (!isValid);
+			
+			Lib.println("");
+			Lib.println("Hello " + name + " :)");
+
+
+			defines.set("FIREFOX_MARKETPLACE" + (devServer ? "_DEV_" : "_") + "KEY", key);
+			defines.set("FIREFOX_MARKETPLACE" + (devServer ? "_DEV_" : "_") + "SECRET", secret);
+
+			writeConfig (defines.get ("HXCPP_CONFIG"), defines);
+			Lib.println("");
+		}
+
+	}
+
 
 	public static function setupLinux ():Void {
 		// Install using apt-get if available.
@@ -2203,11 +2309,4 @@ class Progress extends haxe.io.Output {
 		max = m;
 	}
 
-}
-
-
-enum Answer {
-	Yes;
-	No;
-	Always;
 }

@@ -372,5 +372,5 @@ class AndroidPlatform extends PlatformTarget {
 		
 	}
 	
-	
+	@ignore public override function publish ():Void {}
 }
