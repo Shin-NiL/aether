@@ -121,7 +121,7 @@ class MarketplaceAPI {
 
 		var response = load(GET, "account/settings/mine/", null);
 		return response;
-		
+
 	}
 
 	public function submitForValidation(path:String, type:String = "application/zip"):Dynamic {
@@ -219,6 +219,21 @@ class MarketplaceAPI {
 
 		return response;
 
+	}
+
+	public function getUserApps():Array<Dynamic> {
+		var result:Array<Dynamic> = [];
+		var response = load(GET, 'apps/app/', null);
+
+		if(!response.error && response.objects != null) {
+
+			for(obj in cast (response.objects, Array<Dynamic>)) {
+				result.push(obj);
+			}
+
+		}
+
+		return result;
 	}
 
 	private function load(method:URLRequestMethod, path:String, ?data:String, ?progressMsg:String):Dynamic {

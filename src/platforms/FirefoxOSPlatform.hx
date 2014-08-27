@@ -93,7 +93,10 @@ class FirefoxOSPlatform extends HTML5Platform {
 	@:access(utils.PlatformSetup)
 	public override function publish ():Void {
 
+		// find the server to publish
 		var devServer = project.targetFlags.exists("dev");
+		var forceUpload = project.targetFlags.exists("force");
+		var answer:Answer;
 		if(!devServer) {
 
 			LogHelper.println("In which server do you want to publish your application?");
@@ -101,7 +104,8 @@ class FirefoxOSPlatform extends HTML5Platform {
 			LogHelper.println("\t2. Development server.");
 			LogHelper.println("\tq. Quit.");
 
-			var answer = LogHelper.ask ("Which server?", ["1", "2", "q"]);
+			answer = LogHelper.ask ("Which server?", ["1", "2", "q"]);
+
 			switch(answer) {
 				case Custom(x):
 					switch(x) {
@@ -125,8 +129,10 @@ class FirefoxOSPlatform extends HTML5Platform {
 
 		}
 
+		var baseUrl = devServer ? FirefoxOSHelper.DEVELOPMENT_SERVER_URL : FirefoxOSHelper.PRODUCTION_SERVER_URL;
 		var appID:Int = -1;
 		var appSlug:String = "";
+		var appName = project.meta.title;
 
 		var key = defines.get("FIREFOX_MARKETPLACE" + (devServer ? "_DEV_" : "_") + "KEY");
 		var secret = defines.get("FIREFOX_MARKETPLACE" + (devServer ? "_DEV_" : "_") + "SECRET");
@@ -134,13 +140,12 @@ class FirefoxOSPlatform extends HTML5Platform {
 		var marketplace = new MarketplaceAPI(key, secret, devServer);
 
 		var error = function (r:Dynamic) {
-			marketplace.close();
 			Reflect.deleteField(r, "error");
 			LogHelper.println("");
 			LogHelper.error ((r.customError != null ? r.customError : 'There was an error:\n\n$r')); 
 		};
 
-		// Check the user first
+		LogHelper.print("Checking user... ");
 		var response:Dynamic = marketplace.getUserAccount();
 
 		if(response.error) {
@@ -149,7 +154,25 @@ class FirefoxOSPlatform extends HTML5Platform {
 			error(response);
 
 		}
+		LogHelper.println("OK");
 
+		var apps:List<Dynamic> = Lambda.filter(marketplace.getUserApps(), function(obj) return appName == Reflect.field(obj.name, "en-US"));
+		if(!forceUpload && apps.length > 0) {
+			var app = apps.first();
+
+			LogHelper.println("This application has already been submitted to the Firefox Marketplace.");
+			answer = LogHelper.ask ("Do you want to open the edit page?", ["y", "n"]);
+
+			if(answer == Yes) {
+				ProcessHelper.openURL(baseUrl + '/developers/app/${app.slug}/edit');
+			}
+			
+			Sys.exit(0);
+
+		}
+		
+		LogHelper.println("Publishing '" + appName + "' to " + (devServer ? "development server" : "production server"));
+		LogHelper.println("");
 		LogHelper.print ("Packaging application... ");
 		var packagedFile = compress ();
 		LogHelper.println ("DONE");
@@ -218,7 +241,6 @@ class FirefoxOSPlatform extends HTML5Platform {
 
 			}
 
-			var baseUrl = devServer ? FirefoxOSHelper.DEVELOPMENT_SERVER_URL : FirefoxOSHelper.PRODUCTION_SERVER_URL;
 			var urlApp = baseUrl + '/app/$appSlug/';
 			var devUrlApp = baseUrl + '/developers/app/$appSlug/';
 			var urlContentRatings = devUrlApp + "content_ratings/edit";
@@ -234,7 +256,7 @@ class FirefoxOSPlatform extends HTML5Platform {
 			LogHelper.println("2. Open the application edit page.");
 			LogHelper.println("3. Open the application listing page.");
 			LogHelper.println("q. I'm fine, thanks.");
-			var answer = LogHelper.ask ("Open the questionnaire now?", ["1", "2", "3", "q"]);
+			answer = LogHelper.ask ("Open the questionnaire now?", ["1", "2", "3", "q"]);
 
 			switch(answer) {
 
