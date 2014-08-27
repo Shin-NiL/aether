@@ -225,7 +225,7 @@ class PathHelper {
 						}
 						
 					}
-
+					
 				} catch (e:Dynamic) {}
 				
 			}
