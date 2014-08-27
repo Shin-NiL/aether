@@ -52,6 +52,8 @@ class CommandLineTools {
 		overrides = new HXProject ();
 		overrides.architectures = [];
 		
+		PathHelper.haxelibOverrides.set ("lime-tools", PathHelper.getHaxelib (new Haxelib ("aether")));
+		
 		processArguments ();
 		version = getVersion ();
 		
@@ -744,8 +746,6 @@ class CommandLineTools {
 		HXProject._target = target;
 		HXProject._targetFlags = targetFlags;
 		
-		PathHelper.haxelibOverrides.set ("lime-tools", PathHelper.getHaxelib (new Haxelib ("aether")));
-		
 		try { Sys.setCwd (Path.directory (projectFile)); } catch (e:Dynamic) {}
 		
 		var project:HXProject = null;
@@ -1008,7 +1008,7 @@ class CommandLineTools {
 							Reflect.setField (overrides.certificate, field, argValue);
 							
 						}
-							
+						
 					} else if (StringTools.startsWith (field, "app-") || StringTools.startsWith (field, "meta-") || StringTools.startsWith (field, "window-")) {
 						
 						var split = field.split ("-");
