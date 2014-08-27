@@ -1603,6 +1603,7 @@ class ProjectXMLParser extends HXProject {
 		if (e.hasNode.description) {
 
 			config.firefoxos.description = StringTools.trim(e.node.description.innerData);
+			meta.description = config.firefoxos.description;
 
 		}
 		if (e.hasNode.privacyPolicy) {

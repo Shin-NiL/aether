@@ -1,10 +1,21 @@
 package helpers;
 
+import haxe.crypto.Base64;
+import haxe.io.Path;
+import haxe.Json;
+import sys.io.File;
+import sys.FileSystem;
 import project.HXProject;
 import lime.graphics.Image;
-import sys.FileSystem;
+import lime.net.*;
+import lime.net.oauth.*;
+import helpers.LogHelper;
+import project.PlatformConfig;
 
 class FirefoxOSHelper {
+
+	public static inline var PRODUCTION_SERVER_URL = "https://marketplace.firefox.com";
+	public static inline var DEVELOPMENT_SERVER_URL = "https://marketplace-dev.allizom.org";
 
 	private static inline var TITLE_MAX_CHARS = 127;
 	private static inline var MAX_CATEGORIES = 2;
@@ -73,6 +84,198 @@ class FirefoxOSHelper {
 		}
 
 		return false;
+
+	}
+
+}
+
+class MarketplaceAPI {
+
+	private static inline var API_PATH = "/api/v1/";
+
+	public var client:OAuthClient;
+	private var loader:URLLoader;
+	private var entryPoint:String;
+
+
+	public function new (?key:String, ?secret:String, ?devServer:Bool = false) {
+
+		loader = new URLLoader();
+		if(key != null && secret != null) {
+
+			client = new OAuthClient(OAuthVersion.V1, new OAuthConsumer(key, secret));
+			
+		}
+		
+		entryPoint = (devServer ? FirefoxOSHelper.DEVELOPMENT_SERVER_URL : FirefoxOSHelper.PRODUCTION_SERVER_URL) + API_PATH;
+
+	}
+
+	public function close() {
+
+		loader.close();
+
+	}
+
+	public function getUserAccount():Dynamic {
+
+		var response = load(GET, "account/settings/mine/", null);
+		return response;
+		
+	}
+
+	public function submitForValidation(path:String, type:String = "application/zip"):Dynamic {
+
+		var p = new Path(path);
+		var response:Dynamic = {};
+
+		if (FileSystem.exists(path) && p.ext == "zip") {
+
+			var base = Base64.encode(File.getBytes(path));
+			var filename = p.file + "." + p.ext;
+
+			var upload = {
+				upload: {
+					type: type,
+					name: filename,
+					data: base
+				}
+			};
+
+			response = load(POST, "apps/validation/", Json.stringify(upload), "Uploading:");
+
+		} else {
+			response.error = true;
+			response.customError = 'File $path doesn\'t exist';
+		}
+
+		return response;
+
+	}
+
+	public function checkValidationStatus(uploadID:String) {
+
+		var response = load(GET, 'apps/validation/$uploadID/', null);
+		return response;
+
+	}
+
+	public function createApp(uploadID:String) {
+
+		var response = load(POST, 'apps/app/', Json.stringify({upload: uploadID}));
+		return response;
+
+	}
+
+	public function updateAppInformation(appID:Int, project:HXProject) {
+
+		var config = project.config.firefoxos;
+		var object = {
+			name: project.meta.title,
+			categories: config.categories,
+			description: config.description,
+			privacy_policy: config.privacyPolicy,
+			homepage: config.applicationURL,
+			support_url: config.supportURL,
+			support_email: config.supportEmail,
+			device_types: config.deviceTypes,
+			premium_type: Std.string(config.premiumType),
+			price: Std.string(config.price),
+		};
+
+		var response = load(PUT, 'apps/app/$appID/', Json.stringify(object));
+
+		return response;
+		
+	}
+
+	public function uploadScreenshot(appID:Int, position:Int, path:String) {
+
+		var response:Dynamic = {};
+
+		if (FileSystem.exists(path)) {
+			var p = new Path(path);
+			var type = p.ext == "png" ? "image/png" : "image/jpeg";
+			var base = Base64.encode(File.getBytes(path));
+			var filename = p.file + "." + p.ext;
+
+			var screenshot = {
+				position: position,
+				file: {
+					type: type,
+					name: filename,
+					data: base,
+				}
+			};
+
+			response = load(POST, 'apps/app/$appID/preview/', Json.stringify(screenshot), '\tUploading ($filename):'); 
+
+		} else {
+		
+			response.error = true;
+			response.customError = 'File $path doesn\'t exist';
+		
+		}
+
+		return response;
+
+	}
+
+	private function load(method:URLRequestMethod, path:String, ?data:String, ?progressMsg:String):Dynamic {
+
+		var response:Dynamic = {};
+		var status = 0;
+		var request = customRequest(method, path, data);
+		var withProgress = progressMsg != null && progressMsg.length > 0 && data != null;
+
+		var uploadingFunc:URLLoader->Int->Int->Void = null;
+		if(withProgress) {
+
+			uploadingFunc = function(l, up, dl) LogHelper.progress ('$progressMsg', up, data.length);
+			loader.onProgress.add(uploadingFunc);
+
+		}
+
+		loader.onHTTPStatus.add(function(_, s) status = s, true);
+
+		loader.onComplete.add (
+			function(l) {
+				response = Json.parse(l.data);
+				if(withProgress)
+					l.onProgress.remove(uploadingFunc);
+			}
+			, true);
+
+		loader.load(request);
+
+		response.error = false;
+
+		if(status >= 400) {
+			response.error = true;
+		}
+
+		return response;
+		
+	}
+
+	public function customRequest(method:URLRequestMethod, path:String, ?data:Dynamic):URLRequest {
+		
+		var request:URLRequest;
+		if(client == null) {
+
+			request = new URLRequest(entryPoint + path);
+
+		} else {
+
+			request = client.createRequest(method, entryPoint + path);
+
+		}
+
+		request.method = method;
+		request.data = data;
+		request.contentType = "application/json";
+
+		return request;
 
 	}
 
