@@ -55,10 +55,13 @@ class FirefoxPlatform extends HTML5Platform {
 		var destination = outputDirectory + "/bin/";
 		var context = project.templateContext;
 		
+		FileHelper.recursiveCopyTemplate (project.templatePaths, "firefoxos/hxml", destination, context, true, false);
+		FileHelper.recursiveCopyTemplate (project.templatePaths, "firefoxos/template", destination, context, true, false);
+		
 		FileHelper.recursiveCopyTemplate (project.templatePaths, "firefox/hxml", destination, context);
 		FileHelper.recursiveCopyTemplate (project.templatePaths, "firefox/template", destination, context);
 		
-		var sizes = [ 32, 48, 64, 128, 512 ];
+		var sizes = [ 32, 48, 60, 64, 128, 512 ];
 		
 		for (size in sizes) {
 			
