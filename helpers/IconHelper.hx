@@ -28,7 +28,7 @@ class IconHelper {
 		
 		var icon = findMatch (icons, width, height);
 		
-		if (icon != null && Path.extension (icon.path) == "png") {
+		if (icon != null && icon.size > 0 && Path.extension (icon.path) == "png") {
 			
 			FileHelper.copyFile (icon.path, targetPath);
 			return true;
