@@ -3,8 +3,8 @@ package project;
 
 import helpers.ArrayHelper;
 import helpers.ObjectHelper;
-import helpers.FirefoxOSHelper.DeviceType;
-import helpers.FirefoxOSHelper.PremiumType;
+import helpers.FirefoxHelper.DeviceType;
+import helpers.FirefoxHelper.PremiumType;
 
 
 class PlatformConfig {

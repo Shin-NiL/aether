@@ -15,6 +15,7 @@ import project.*;
 import sys.io.File;
 import sys.io.Process;
 import sys.FileSystem;
+import utils.publish.*;
 import utils.CreateTemplate;
 import utils.JavaExternGenerator;
 import utils.PlatformSetup;
@@ -98,7 +99,7 @@ class CommandLineTools {
 				
 				updateLibrary ();
 			
-			case "clean", "update", "display", "build", "run", "rerun", /*"install",*/ "uninstall", "trace", "test", "publish":
+			case "clean", "update", "display", "build", "run", "rerun", /*"install",*/ "uninstall", "trace", "test":
 				
 				if (words.length < 1 || words.length > 2) {
 					
@@ -107,7 +108,19 @@ class CommandLineTools {
 					
 				}
 				
-				buildProject ();
+				var project = initializeProject ();
+				buildProject (project);
+			
+			case "publish":
+				
+				if (words.length < 1 || words.length > 2) {
+					
+					LogHelper.error ("Incorrect number of arguments for command '" + command + "'");
+					return;
+					
+				}
+				
+				publishProject ();
 			
 			case "installer", "copy-if-newer":
 				
@@ -122,12 +135,15 @@ class CommandLineTools {
 	}
 	
 	
-	private function buildProject () {
+	private function buildProject (project:HXProject, command:String = "") {
 		
-		var project = initializeProject ();
-		var command = project.command.toLowerCase ();
+		if (command == "") {
+			
+			command = project.command.toLowerCase ();
+			
+		}
 		
-		if (command == "update" || command == "build" || command == "test" || command == "publish") {
+		if (command == "update" || command == "build" || command == "test") {
 			
 			AssetHelper.processLibraries (project);
 			
@@ -209,9 +225,9 @@ class CommandLineTools {
 					
 					platform = new HTML5Platform (command, project, targetFlags);
 				
-				case FIREFOXOS:
+				case FIREFOX:
 					
-					platform = new FirefoxOSPlatform (command, project, targetFlags);
+					platform = new FirefoxPlatform (command, project, targetFlags);
 				
 				case EMSCRIPTEN:
 					
@@ -301,25 +317,6 @@ class CommandLineTools {
 			CreateTemplate.listSamples ("lime", userDefines);
 			
 		}
-		
-	}
-	
-	
-	private function document ():Void {
-	
-	
-	}
-	
-	
-	private function ascii (text:String):String {
-		
-		if (PlatformHelper.hostPlatform != Platform.WINDOWS) {
-			
-			return text;
-			
-		}
-		
-		return "";
 		
 	}
 	
@@ -425,6 +422,13 @@ class CommandLineTools {
 			LogHelper.println ("Use \x1b[3maether setup\x1b[0m to configure platforms or \x1b[3maether help\x1b[0m for more commands");
 			
 		}
+		
+	}
+	
+	
+	private function document ():Void {
+		
+		
 		
 	}
 	
@@ -641,12 +645,11 @@ class CommandLineTools {
 	}
 	
 	
-	private function initializeProject ():HXProject {
+	private function initializeProject (targetName:String = ""):HXProject {
 		
 		LogHelper.info ("", "\x1b[36;1mInitializing project...\x1b[0m");
 		
 		var projectFile = "";
-		var targetName = "";
 		
 		if (words.length == 2) {
 			
@@ -664,12 +667,21 @@ class CommandLineTools {
 				
 			}
 			
-			targetName = words[1].toLowerCase ();
+			if (targetName == "") {
+				
+				targetName = words[1].toLowerCase ();
+				
+			}
 			
 		} else {
 			
 			projectFile = findProjectFile (Sys.getCwd ());
-			targetName = words[0].toLowerCase ();
+			
+			if (targetName == "") {
+				
+				targetName = words[0].toLowerCase ();
+				
+			}
 			
 		}
 		
@@ -706,6 +718,11 @@ class CommandLineTools {
 				
 				target = Platform.IOS;
 				targetFlags.set ("simulator", "");
+			
+			case "firefox", "firefoxos":
+				
+				target = Platform.FIREFOX;
+				overrides.haxedefs.set ("firefoxos", "");
 			
 			default:
 				
@@ -878,6 +895,28 @@ class CommandLineTools {
 	public static function main ():Void {
 		
 		new CommandLineTools ();
+		
+	}
+	
+	
+	private function platformSetup ():Void {
+		
+		LogHelper.info ("", "\x1b[36;1mRunning command: SETUP\x1b[0m");
+		
+		if (words.length == 0) {
+			
+			PlatformSetup.run ("", userDefines, targetFlags);
+			
+		} else if (words.length == 1) {
+			
+			PlatformSetup.run (words[0], userDefines, targetFlags);
+			
+		} else {
+			
+			LogHelper.error ("Incorrect number of arguments for command 'setup'");
+			return;
+			
+		}
 		
 	}
 	
@@ -1148,22 +1187,22 @@ class CommandLineTools {
 	}
 	
 	
-	private function platformSetup ():Void {
+	private function publishProject () {
 		
-		LogHelper.info ("", "\x1b[36;1mRunning command: SETUP\x1b[0m");
-		
-		if (words.length == 0) {
+		switch (words[words.length - 1]) {
 			
-			PlatformSetup.run ("", userDefines, targetFlags);
-			
-		} else if (words.length == 1) {
-			
-			PlatformSetup.run (words[0], userDefines, targetFlags);
-			
-		} else {
-			
-			LogHelper.error ("Incorrect number of arguments for command 'setup'");
-			return;
+			case "firefox":
+				
+				var project = initializeProject ("firefox");
+				
+				if (FirefoxMarketplace.isValid (project)) {
+					
+					buildProject (project, "build");
+					
+					LogHelper.info ("", "\n\x1b[36;1mRunning command: PUBLISH\x1b[0m");
+					FirefoxMarketplace.publish (project);
+					
+				}
 			
 		}
 		

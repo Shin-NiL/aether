@@ -138,7 +138,7 @@ class HXProject {
 				defaultWindow.height = 0;
 				defaultWindow.fps = 0;
 			
-			case FIREFOXOS:
+			case FIREFOX:
 				
 				platformType = PlatformType.MOBILE;
 				architectures = [];
@@ -879,7 +879,7 @@ class HXProject {
 				
 				if (asset.embed == null) {
 					
-					embeddedAsset.embed = (platformType == PlatformType.WEB || target == Platform.FIREFOXOS);
+					embeddedAsset.embed = (platformType == PlatformType.WEB || target == Platform.FIREFOX);
 					
 				}
 				

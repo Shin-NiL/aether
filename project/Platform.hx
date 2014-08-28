@@ -5,7 +5,7 @@ package project;
 	
 	var ANDROID = "android";
 	var BLACKBERRY = "blackberry";
-	var FIREFOXOS = "firefoxos";
+	var FIREFOX = "firefox";
 	var FLASH = "flash";
 	var HTML5 = "html5";
 	var IOS = "ios";

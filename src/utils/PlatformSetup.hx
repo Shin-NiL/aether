@@ -6,22 +6,18 @@ import haxe.io.Eof;
 import haxe.io.Path;
 import haxe.zip.Reader;
 import helpers.BlackBerryHelper;
-import helpers.FirefoxOSHelper;
-import helpers.FirefoxOSHelper.MarketplaceAPI;
+import helpers.CLIHelper;
 import helpers.FileHelper;
 import helpers.LogHelper;
 import helpers.PathHelper;
 import helpers.PlatformHelper;
 import helpers.ProcessHelper;
-import neko.Lib;
 import project.Haxelib;
 import project.HXProject;
 import project.Platform;
 import sys.io.File;
 import sys.io.Process;
 import sys.FileSystem;
-
-import haxe.Json;
 
 
 class PlatformSetup {
@@ -48,10 +44,10 @@ class PlatformSetup {
 	private static var codeSourceryWindowsPath = "http://sourcery.mentor.com/public/gnu_toolchain/arm-none-linux-gnueabi/arm-2009q1-203-arm-none-linux-gnueabi.exe";
 	private static var emscriptenSDKURL = "https://github.com/kripken/emscripten/wiki/Emscripten-SDK";
 	private static var javaJDKURL = "http://www.oracle.com/technetwork/java/javase/downloads/jdk6u37-downloads-1859587.html";
-	private static var aptPackages = "ia32-libs-multiarch gcc-multilib g++-multilib";
-	private static var ubuntuSaucyPackages = "gcc-multilib g++-multilib libxext-dev";
-	private static var yumPackages = "gcc gcc-c++";
-	private static var pacmanPackages = "multilib-devel lib32-mesa lib32-mesa-libgl lib32-glu";
+	private static var linuxAptPackages = "ia32-libs-multiarch gcc-multilib g++-multilib";
+	private static var linuxUbuntuSaucyPackages = "gcc-multilib g++-multilib libxext-dev";
+	private static var linuxYumPackages = "gcc gcc-c++";
+	private static var linuxPacmanPackages = "multilib-devel lib32-mesa lib32-mesa-libgl lib32-glu";
 	private static var tizenSDKURL = "https://developer.tizen.org/downloads/tizen-sdk";
 	private static var webOSLinuxX64NovacomPath = "http://cdn.downloads.palm.com/sdkdownloads/3.0.4.669/sdkBinaries/palm-novacom_1.0.80_amd64.deb";
 	private static var webOSLinuxX86NovacomPath = "http://cdn.downloads.palm.com/sdkdownloads/3.0.4.669/sdkBinaries/palm-novacom_1.0.80_i386.deb";
@@ -60,24 +56,13 @@ class PlatformSetup {
 	private static var webOSWindowsX64SDKPath = "http://cdn.downloads.palm.com/sdkdownloads/3.0.5.676/sdkBinaries/HP_webOS_SDK-Win-3.0.5-676-x64.exe";
 	private static var webOSWindowsX86SDKPath = "http://cdn.downloads.palm.com/sdkdownloads/3.0.5.676/sdkBinaries/HP_webOS_SDK-Win-3.0.5-676-x86.exe";
 	private static var windowsVisualStudioCPPPath = "http://download.microsoft.com/download/1/D/9/1D9A6C0E-FC89-43EE-9658-B9F0E3A76983/vc_web.exe";
-
+	
 	private static var backedUpConfig:Bool = false;
 	private static var nme:String;
 	private static var triedSudo:Bool = false;
 	private static var userDefines:Map<String, Dynamic>;
 	private static var targetFlags:Map<String, Dynamic>;
 	private static var setupHaxelibs = new Map<String, Bool> ();
-	
-   static inline function readLine()
-   {
-		return LogHelper.readLine();
-   }
-	
-	private static inline function ask (question:String, ?options:Array<String>):Answer {
-		
-		return LogHelper.ask (question, options);
-		
-	}
 	
 	
 	private static function createPath (path:String, defaultPath:String = ""):String {
@@ -116,9 +101,9 @@ class PlatformSetup {
 		
 		if (!followingLocation && FileSystem.exists (localPath)) {
 			
-			var answer = ask ("File found. Install existing file?");
+			var answer = CLIHelper.ask ("File found. Install existing file?");
 			
-			if (answer != No) {
+			if (answer != NO) {
 				
 				return;
 				
@@ -140,7 +125,7 @@ class PlatformSetup {
 		
 		if (!followingLocation) {
 			
-			Lib.println ("Downloading " + localPath + "...");
+			LogHelper.println ("Downloading " + localPath + "...");
 			
 		}
 		
@@ -210,15 +195,15 @@ class PlatformSetup {
 			var file = File.read (sourceZIP, true);
 			var entries = Reader.readZip (file);
 			file.close ();
-		
+			
 			for (entry in entries) {
 			
 				var fileName = entry.fileName;
 			
 				if (fileName.charAt (0) != "/" && fileName.charAt (0) != "\\" && fileName.split ("..").length <= 1) {
-				
+					
 					var dirs = ~/[\/\\]/g.split(fileName);
-				
+					
 					if ((ignoreRootFolder != "" && dirs.length > 1) || ignoreRootFolder == "") {
 					
 						if (ignoreRootFolder != "") {
@@ -226,41 +211,47 @@ class PlatformSetup {
 							dirs.shift ();
 						
 						}
-					
+						
 						var path = "";
-						var file = dirs.pop();
-						for( d in dirs ) {
+						var file = dirs.pop ();
+						
+						for (d in dirs) {
+							
 							path += d;
 							PathHelper.mkdir (targetPath + "/" + path);
 							path += "/";
+							
 						}
-					
-						if( file == "" ) {
-							if( path != "" ) Lib.println("  Created "+path);
+						
+						if (file == "") {
+							
+							if (path != "") LogHelper.println ("  Created " + path);
 							continue; // was just a directory
+							
 						}
+						
 						path += file;
-						Lib.println ("  Install " + path);
-					
+						LogHelper.println ("  Install " + path);
+						
 						var data = Reader.unzip (entry);
 						var f = File.write (targetPath + "/" + path, true);
 						f.write (data);
 						f.close ();
-					
+						
 					}
-				
+					
 				}
-			
+				
 			}
 			
 		}
 		
-		Lib.println ("Done");
+		LogHelper.println ("Done");
 		
 	}
 	
 	
-	private static function getDefines (names:Array <String> = null, descriptions:Array <String> = null, ignored:Array <String> = null):Map <String, String> {
+	public static function getDefines (names:Array <String> = null, descriptions:Array <String> = null, ignored:Array <String> = null):Map <String, String> {
 		
 		var config = CommandLineTools.getHXCPPConfig ();
 		
@@ -302,7 +293,7 @@ class PlatformSetup {
 				
 			} else {
 				
-				Lib.println ("Warning : No 'HOME' variable set - .hxcpp_config.xml might be missing.");
+				LogHelper.println ("Warning : No 'HOME' variable set - .hxcpp_config.xml might be missing.");
 				
 				return null;
 				
@@ -345,7 +336,7 @@ class PlatformSetup {
 				
 			}
 			
-			value = unescapePath (param ("\x1b[1m" + description + "\x1b[0m \x1b[37;3m[" + value + "]\x1b[0m"));
+			value = unescapePath (CLIHelper.param ("\x1b[1m" + description + "\x1b[0m \x1b[37;3m[" + value + "]\x1b[0m"));
 			
 			if (value != "") {
 				
@@ -381,19 +372,12 @@ class PlatformSetup {
 	
 	private static function link (dir:String, file:String, dest:String):Void {
 		
-		Sys.command("rm -rf " + dest + "/" + file);
-		Sys.command("ln -s " + "/usr/lib" +"/" + dir + "/" + file + " " + dest + "/" + file);
+		Sys.command ("rm -rf " + dest + "/" + file);
+		Sys.command ("ln -s " + "/usr/lib" +"/" + dir + "/" + file + " " + dest + "/" + file);
 		
 	}
 	
 	
-	inline static function getChar () {
-		
-	   return LogHelper.getChar ();
-	   
-	}
-   
-   
 	private static function openURL (url:String):Void {
 		
 		if (PlatformHelper.hostPlatform == Platform.WINDOWS) {
@@ -409,13 +393,6 @@ class PlatformSetup {
 			ProcessHelper.runCommand ("", "open", [ url ], false);
 			
 		}
-		
-   }
-	
-	
-	private static function param (name:String, ?passwd:Bool):String {
-		
-		return LogHelper.param (name, passwd);
 		
 	}
 	
@@ -448,10 +425,6 @@ class PlatformSetup {
 				//case "html5":
 					
 					//setupHTML5 ();
-
-				case "firefoxos":
-
-					setupFirefoxOS ();
 				
 				case "ios":
 					
@@ -518,9 +491,9 @@ class PlatformSetup {
 			
 			try {
 				
-				Lib.println (message);
+				LogHelper.println (message);
 				ProcessHelper.runCommand ("", "call", [ path ], false);
-				Lib.println ("Done");
+				LogHelper.println ("Done");
 				
 			} catch (e:Dynamic) {}
 			
@@ -532,7 +505,7 @@ class PlatformSetup {
 				
 			} else {
 				
-				Lib.println (message);
+				LogHelper.println (message);
 				Sys.command ("chmod", [ "755", path ]);
 				
 				if (path.substr (0, 1) == "/") {
@@ -545,7 +518,7 @@ class PlatformSetup {
 					
 				}
 				
-				Lib.println ("Done");
+				LogHelper.println ("Done");
 				
 			}
 			
@@ -553,10 +526,10 @@ class PlatformSetup {
 			
 			if (Path.extension (path) == "") {
 				
-				Lib.println (message);
+				LogHelper.println (message);
 				Sys.command ("chmod", [ "755", path ]);
 				ProcessHelper.runCommand ("", path, [], false);
-				Lib.println ("Done");
+				LogHelper.println ("Done");
 				
 			} else if (Path.extension (path) == "dmg") {
 				
@@ -619,9 +592,9 @@ class PlatformSetup {
 					
 					if (file != "") {
 						
-						Lib.println (message);
+						LogHelper.println (message);
 						ProcessHelper.runCommand ("", "open", [ "-W", volumePath + "/" + file ], false);
-						Lib.println ("Done");
+						LogHelper.println ("Done");
 						
 					}
 					
@@ -657,6 +630,7 @@ class PlatformSetup {
 		
 	}
 	
+	
 	public static function setupAether ():Void {
 		
 		//setupHaxelib (new Haxelib ("aether"));
@@ -688,7 +662,7 @@ class PlatformSetup {
 			}
 			
 			var installedCommand = false;
-			var answer = Yes;
+			var answer = YES;
 			
 			if (targetFlags.exists ("y")) {
 				
@@ -696,11 +670,11 @@ class PlatformSetup {
 				
 			} else {
 				
-				answer = ask ("Do you want to install the \"aether\" command?");
+				answer = CLIHelper.ask ("Do you want to install the \"aether\" command?");
 				
 			}
 			
-			if (answer == Yes || answer == Always) {
+			if (answer == YES || answer == ALWAYS) {
 				
 				try {
 					
@@ -752,9 +726,9 @@ class PlatformSetup {
 		
 		var setAIRSDK = false;
 		var defines = getDefines ();
-		var answer = ask ("Download and install the Adobe AIR SDK?");
+		var answer = CLIHelper.ask ("Download and install the Adobe AIR SDK?");
 		
-		if (answer == Yes || answer == Always) {
+		if (answer == YES || answer == ALWAYS) {
 			
 			var downloadPath = "";
 			var defaultInstallPath = "";
@@ -773,7 +747,7 @@ class PlatformSetup {
 
 			downloadFile (downloadPath);
 			
-			var path = unescapePath (param ("Output directory [" + defaultInstallPath + "]"));
+			var path = unescapePath (CLIHelper.param ("Output directory [" + defaultInstallPath + "]"));
 			path = createPath (path, defaultInstallPath);
 			
 			extractFile (Path.withoutDirectory (downloadPath), path, "");
@@ -781,7 +755,7 @@ class PlatformSetup {
 			setAIRSDK = true;
 			defines.set ("AIR_SDK", path);
 			writeConfig (defines.get ("HXCPP_CONFIG"), defines);
-			Lib.println ("");
+			LogHelper.println ("");
 			
 		}
 		
@@ -797,7 +771,7 @@ class PlatformSetup {
 		
 		if (!setAIRSDK) {
 			
-			Lib.println ("");
+			LogHelper.println ("");
 			
 		}
 		
@@ -822,9 +796,9 @@ class PlatformSetup {
 		var setJavaJDK = false;
 		
 		var defines = getDefines ();
-		var answer = ask ("Download and install the Android SDK?");
+		var answer = CLIHelper.ask ("Download and install the Android SDK?");
 		
-		if (answer == Yes || answer == Always) {
+		if (answer == YES || answer == ALWAYS) {
 			
 			var downloadPath = "";
 			var defaultInstallPath = "";
@@ -848,10 +822,10 @@ class PlatformSetup {
 				ignoreRootFolder = "android-sdk-mac";
 				
 			}
-
+			
 			downloadFile (downloadPath);
 			
-			var path = unescapePath (param ("Output directory [" + defaultInstallPath + "]"));
+			var path = unescapePath (CLIHelper.param ("Output directory [" + defaultInstallPath + "]"));
 			path = createPath (path, defaultInstallPath);
 			
 			extractFile (Path.withoutDirectory (downloadPath), path, ignoreRootFolder);
@@ -862,8 +836,8 @@ class PlatformSetup {
 				
 			}
 			
-			Lib.println ("Launching the Android SDK Manager to install packages");
-			Lib.println ("Please install Android API 16 and SDK Platform-tools");
+			LogHelper.println ("Launching the Android SDK Manager to install packages");
+			LogHelper.println ("Please install Android API 16 and SDK Platform-tools");
 			
 			if (PlatformHelper.hostPlatform == Platform.WINDOWS) {
 				
@@ -885,21 +859,21 @@ class PlatformSetup {
 			setAndroidSDK = true;
 			defines.set ("ANDROID_SDK", path);
 			writeConfig (defines.get ("HXCPP_CONFIG"), defines);
-			Lib.println ("");
+			LogHelper.println ("");
 			
 		}
 		
-		if (answer == Always) {
+		if (answer == ALWAYS) {
 			
-			Lib.println ("Download and install the Android NDK? [y/n/a] a");
+			LogHelper.println ("Download and install the Android NDK? [y/n/a] a");
 			
 		} else {
 			
-			answer = ask ("Download and install the Android NDK?");
+			answer = CLIHelper.ask ("Download and install the Android NDK?");
 			
 		}
 		
-		if (answer == Yes || answer == Always) {
+		if (answer == YES || answer == ALWAYS) {
 			
 			var downloadPath = "";
 			var defaultInstallPath = "";
@@ -924,7 +898,7 @@ class PlatformSetup {
 			
 			downloadFile (downloadPath);
 			
-			var path = unescapePath (param ("Output directory [" + defaultInstallPath + "]"));
+			var path = unescapePath (CLIHelper.param ("Output directory [" + defaultInstallPath + "]"));
 			path = createPath (path, defaultInstallPath);
 			
 			extractFile (Path.withoutDirectory (downloadPath), path, ignoreRootFolder);
@@ -932,31 +906,31 @@ class PlatformSetup {
 			setAndroidNDK = true;
 			defines.set ("ANDROID_NDK_ROOT", path);
 			writeConfig (defines.get ("HXCPP_CONFIG"), defines);
-			Lib.println ("");
+			LogHelper.println ("");
 			
 		}
 		
-		if (answer == Always) {
+		if (answer == ALWAYS) {
 			
-			Lib.println ("Download and install Apache Ant? [y/n/a] a");
-		
+			LogHelper.println ("Download and install Apache Ant? [y/n/a] a");
+			
 		} else {
 			
-			answer = ask ("Download and install Apache Ant?");
+			answer = CLIHelper.ask ("Download and install Apache Ant?");
 			
 		}
 		
-		if (answer == Yes || answer == Always) {
+		if (answer == YES || answer == ALWAYS) {
 			
 			var downloadPath = "";
 			var defaultInstallPath = "";
 			var ignoreRootFolder = "apache-ant-1.9.2";
-		
+			
 			if (PlatformHelper.hostPlatform == Platform.WINDOWS) {
 				
 				downloadPath = apacheAntWindowsPath;
 				defaultInstallPath = "C:\\Development\\Apache Ant";
-			
+				
 			} else {
 				
 				downloadPath = apacheAntUnixPath;
@@ -966,7 +940,7 @@ class PlatformSetup {
 			
 			downloadFile (downloadPath);
 			
-			var path = unescapePath (param ("Output directory [" + defaultInstallPath + "]"));
+			var path = unescapePath (CLIHelper.param ("Output directory [" + defaultInstallPath + "]"));
 			path = createPath (path, defaultInstallPath);
 			
 			extractFile (Path.withoutDirectory (downloadPath), path, ignoreRootFolder);
@@ -979,33 +953,33 @@ class PlatformSetup {
 		
 		if (PlatformHelper.hostPlatform != Platform.MAC) {
 			
-			if (answer == Always) {
-			
-				Lib.println ("Download and install the Java JDK? [y/n/a] a");
-			
+			if (answer == ALWAYS) {
+				
+				LogHelper.println ("Download and install the Java JDK? [y/n/a] a");
+				
 			} else {
-			
-				answer = ask ("Download and install the Java JDK?");
-			
+				
+				answer = CLIHelper.ask ("Download and install the Java JDK?");
+				
 			}
-		
-			if (answer == Yes || answer == Always) {
 			
-				Lib.println ("You must visit the Oracle website to download the Java 6 JDK for your platform");
-				var secondAnswer = ask ("Would you like to go there now?");
-			
-				if (secondAnswer != No) {
+			if (answer == YES || answer == ALWAYS) {
+				
+				LogHelper.println ("You must visit the Oracle website to download the Java 6 JDK for your platform");
+				var secondAnswer = CLIHelper.ask ("Would you like to go there now?");
+				
+				if (secondAnswer != NO) {
 					
 					openURL (javaJDKURL);
 					
 				}
 				
-				Lib.println ("");
-			
+				LogHelper.println ("");
+				
 			}
 			
 		}
-			
+		
 		var requiredVariables = new Array <String> ();
 		var requiredVariableDescriptions = new Array <String> ();
 		var ignoreValues = new Array <String> ();
@@ -1044,7 +1018,7 @@ class PlatformSetup {
 		
 		if (!setAndroidSDK && !setAndroidNDK && !setApacheAnt) {
 			
-			Lib.println ("");
+			LogHelper.println ("");
 			
 		}
 		
@@ -1092,9 +1066,9 @@ class PlatformSetup {
 	
 	public static function setupBlackBerry ():Void {
 		
-		var answer = ask ("Download and install the BlackBerry Native SDK?");
+		var answer = CLIHelper.ask ("Download and install the BlackBerry Native SDK?");
 		
-		if (answer == Yes || answer == Always) {
+		if (answer == YES || answer == ALWAYS) {
 			
 			var downloadPath = "";
 			var defaultInstallPath = "";
@@ -1118,9 +1092,9 @@ class PlatformSetup {
 			
 			downloadFile (downloadPath);
 			runInstaller (Path.withoutDirectory (downloadPath));
-			Lib.println ("");
+			LogHelper.println ("");
 			
-			/*var path = unescapePath (param ("Output directory [" + defaultInstallPath + "]"));
+			/*var path = unescapePath (CLIHelper.param ("Output directory [" + defaultInstallPath + "]"));
 			path = createPath (path, defaultInstallPath);
 			
 			extractFile (Path.withoutDirectory (downloadPath), path, ignoreRootFolder);
@@ -1128,7 +1102,7 @@ class PlatformSetup {
 			setAndroidNDK = true;
 			defines.set ("ANDROID_NDK_ROOT", path);
 			writeConfig (defines.get ("HXCPP_CONFIG"), defines);
-			Lib.println ("");*/
+			LogHelper.println ("");*/
 			
 		}
 		
@@ -1142,17 +1116,17 @@ class PlatformSetup {
 		
 		if (PlatformHelper.hostPlatform == Platform.WINDOWS) {
 			
-			if (answer == Always) {
+			if (answer == ALWAYS) {
 				
-				Lib.println ("Download and install the BlackBerry WebWorks SDK? [y/n/a] a");
+				LogHelper.println ("Download and install the BlackBerry WebWorks SDK? [y/n/a] a");
 			
 			} else {
 				
-				answer = ask ("Download and install the BlackBerry WebWorks SDK?");
+				answer = CLIHelper.ask ("Download and install the BlackBerry WebWorks SDK?");
 			
 			}
 			
-			if (answer == Always || answer == Yes) {
+			if (answer == ALWAYS || answer == YES) {
 				
 				var downloadPath = "";
 				var defaultInstallPath = "";
@@ -1176,9 +1150,9 @@ class PlatformSetup {
 				
 				downloadFile (downloadPath);
 				runInstaller (Path.withoutDirectory (downloadPath));
-				Lib.println ("");
+				LogHelper.println ("");
 				
-				/*var path = unescapePath (param ("Output directory [" + defaultInstallPath + "]"));
+				/*var path = unescapePath (CLIHelper.param ("Output directory [" + defaultInstallPath + "]"));
 				path = createPath (path, defaultInstallPath);
 				
 				extractFile (Path.withoutDirectory (downloadPath), path, ignoreRootFolder);
@@ -1186,7 +1160,7 @@ class PlatformSetup {
 				setAndroidNDK = true;
 				defines.set ("ANDROID_NDK_ROOT", path);
 				writeConfig (defines.get ("HXCPP_CONFIG"), defines);
-				Lib.println ("");*/
+				LogHelper.println ("");*/
 				
 			}
 			
@@ -1282,64 +1256,64 @@ class PlatformSetup {
 			
 		} catch (e:Dynamic) {
 			
-			Lib.println ("Error: Path to BlackBerry Native SDK appears to be invalid");
+			LogHelper.println ("Error: Path to BlackBerry Native SDK appears to be invalid");
 			
 		}
 		
 		binDirectory = defines.get ("QNX_HOST") + "/usr/bin/";
 		
-		if (answer == Always) {
+		if (answer == ALWAYS) {
 			
-			Lib.println ("Configure a BlackBerry device? [y/n/a] a");
+			LogHelper.println ("Configure a BlackBerry device? [y/n/a] a");
 			
 		} else {
 			
-			answer = ask ("Configure a BlackBerry device?");
+			answer = CLIHelper.ask ("Configure a BlackBerry device?");
 			
 		}
 		
 		var debugTokenPath:String = null;
 		
-		if (answer == Yes || answer == Always) {
-
-			var secondAnswer = ask ("Do you have a valid debug token?");
+		if (answer == YES || answer == ALWAYS) {
 			
-			if (secondAnswer == No) {
+			var secondAnswer = CLIHelper.ask ("Do you have a valid debug token?");
+			
+			if (secondAnswer == NO) {
 				
-				secondAnswer = ask ("Have you requested code signing keys?");
+				secondAnswer = CLIHelper.ask ("Have you requested code signing keys?");
 				
-				if (secondAnswer == No) {
+				if (secondAnswer == NO) {
 					
-					secondAnswer = ask ("Would you like to request them now?");
+					secondAnswer = CLIHelper.ask ("Would you like to request them now?");
 					
-					if (secondAnswer != No) {
+					if (secondAnswer != NO) {
 						
 						openURL (blackBerryCodeSigningURL);
 						
 					}
 					
-					Lib.println ("");
-					Lib.println ("It can take up to two hours for code signing keys to arrive");
-					Lib.println ("Please run \"lime setup blackberry\" again at that time");
+					LogHelper.println ("");
+					LogHelper.println ("It can take up to two hours for code signing keys to arrive");
+					LogHelper.println ("Please run \"lime setup blackberry\" again at that time");
 					Sys.exit (0);
 					
 				} else {
 					
-					secondAnswer = ask ("Have you created a keystore file?");
+					secondAnswer = CLIHelper.ask ("Have you created a keystore file?");
 					
 					var cskPassword:String = null;
 					var keystorePath:String = null;
 					var keystorePassword:String = null;
 					var outputPath:String = null;
 					
-					if (secondAnswer == No) {
+					if (secondAnswer == NO) {
 						
-						var pbdtFile = unescapePath (param ("Path to client-PBDT-*.csj file"));
-						var rdkFile = unescapePath (param ("Path to client-RDK-*.csj file"));
-						var cskPIN = param ("Code signing key PIN");
-						cskPassword = param ("Code signing key password", true);
+						var pbdtFile = unescapePath (CLIHelper.param ("Path to client-PBDT-*.csj file"));
+						var rdkFile = unescapePath (CLIHelper.param ("Path to client-RDK-*.csj file"));
+						var cskPIN = CLIHelper.param ("Code signing key PIN");
+						cskPassword = CLIHelper.param ("Code signing key password", true);
 						
-						Lib.println ("Registering code signing keys...");
+						LogHelper.println ("Registering code signing keys...");
 						
 						try {
 							
@@ -1352,22 +1326,22 @@ class PlatformSetup {
 							ProcessHelper.runCommand ("", binDirectory + "blackberry-signer", [ "-register", "-cskpass", cskPassword, "-csjpin", cskPIN, pbdtFile ], false);
 							ProcessHelper.runCommand ("", binDirectory + "blackberry-signer", [ "-register", "-cskpass", cskPassword, "-csjpin", cskPIN, rdkFile ], false);
 							
-							Lib.println ("Done.");
+							LogHelper.println ("Done.");
 							
 						} catch (e:Dynamic) {}
 						
-						keystorePassword = param ("Keystore password", true);
-						var companyName = param ("Company name");
-						outputPath = unescapePath (param ("Output directory"));
+						keystorePassword = CLIHelper.param ("Keystore password", true);
+						var companyName = CLIHelper.param ("Company name");
+						outputPath = unescapePath (CLIHelper.param ("Output directory"));
 						keystorePath = outputPath + "/author.p12";
 						
-						Lib.println ("Creating keystore...");
+						LogHelper.println ("Creating keystore...");
 						
 						try {
 							
 							ProcessHelper.runCommand ("", binDirectory + "blackberry-keytool", [ "-genkeypair", "-keystore", keystorePath, "-storepass", keystorePassword, "-dname", "cn=(" + companyName + ")", "-alias", "author" ], false);
 							
-							Lib.println ("Done.");
+							LogHelper.println ("Done.");
 							
 						} catch (e:Dynamic) {
 							
@@ -1382,19 +1356,19 @@ class PlatformSetup {
 					
 					if (cskPassword == null) {
 						
-						cskPassword = param ("Code signing key password", true);
+						cskPassword = CLIHelper.param ("Code signing key password", true);
 						
 					}
 					
 					if (keystorePath == null) {
 						
-						keystorePath = unescapePath (param ("Path to keystore (*.p12) file"));
+						keystorePath = unescapePath (CLIHelper.param ("Path to keystore (*.p12) file"));
 						
 					}
 					
 					if (keystorePassword == null) {
 						
-						keystorePassword = param ("Keystore password", true);
+						keystorePassword = CLIHelper.param ("Keystore password", true);
 						
 					}
 					
@@ -1410,7 +1384,7 @@ class PlatformSetup {
 						
 						for (deviceID in token.deviceIDs) {
 							
-							if (ask ("Would you like to add existing device PIN \"" + deviceID + "\"?") != No) {
+							if (CLIHelper.ask ("Would you like to add existing device PIN \"" + deviceID + "\"?") != NO) {
 								
 								deviceIDs.push ("0x" + deviceID);
 								
@@ -1422,13 +1396,13 @@ class PlatformSetup {
 					
 					if (deviceIDs.length == 0) {
 						
-						deviceIDs.push ("0x" + param ("Device PIN"));
+						deviceIDs.push ("0x" + CLIHelper.param ("Device PIN"));
 						
 					}
 					
-					while (ask ("Would you like to add another device PIN?") != No) {
+					while (CLIHelper.ask ("Would you like to add another device PIN?") != NO) {
 						
-						var pin = param ("Device PIN");
+						var pin = CLIHelper.param ("Device PIN");
 						
 						if (pin != null && pin != "") {
 							
@@ -1440,13 +1414,13 @@ class PlatformSetup {
 					
 					if (outputPath == null) {
 						
-						outputPath = unescapePath (param ("Output directory"));
+						outputPath = unescapePath (CLIHelper.param ("Output directory"));
 						
 					}
 					
 					debugTokenPath = outputPath + "/debugToken.bar";
 					
-					Lib.println ("Requesting debug token...");
+					LogHelper.println ("Requesting debug token...");
 					
 					try {
 						
@@ -1463,7 +1437,7 @@ class PlatformSetup {
 						
 						ProcessHelper.runCommand ("", binDirectory + "blackberry-debugtokenrequest", params, false);
 						
-						Lib.println ("Done.");
+						LogHelper.println ("Done.");
 						
 					} catch (e:Dynamic) {
 						
@@ -1479,7 +1453,7 @@ class PlatformSetup {
 				
 			}
 			
-			if (answer == Yes || answer == Always) {
+			if (answer == YES || answer == ALWAYS) {
 				
 				var names:Array<String> = [];
 				var descriptions:Array<String> = [];
@@ -1503,11 +1477,11 @@ class PlatformSetup {
 					
 				}
 				
-				var secondAnswer = ask ("Install debug token on device?");
+				var secondAnswer = CLIHelper.ask ("Install debug token on device?");
 				
-				if (secondAnswer != No) {
+				if (secondAnswer != NO) {
 					
-					Lib.println ("Installing debug token...");
+					LogHelper.println ("Installing debug token...");
 					var done = false;
 					
 					while (!done) {
@@ -1516,12 +1490,12 @@ class PlatformSetup {
 							
 							ProcessHelper.runCommand ("", binDirectory + "blackberry-deploy", [ "-installDebugToken", defines.get ("BLACKBERRY_DEBUG_TOKEN"), "-device", defines.get ("BLACKBERRY_DEVICE_IP"), "-password", defines.get ("BLACKBERRY_DEVICE_PASSWORD") ], false);
 							
-							Lib.println ("Done.");
+							LogHelper.println ("Done.");
 							done = true;
 							
 						} catch (e:Dynamic) {
 							
-							if (ask ("Would you like to try again?") == No) {
+							if (CLIHelper.ask ("Would you like to try again?") == NO) {
 								
 								Sys.exit (1);
 								
@@ -1537,17 +1511,17 @@ class PlatformSetup {
 			
 		}
 		
-		if (answer == Always) {
+		if (answer == ALWAYS) {
 			
-			Lib.println ("Configure the BlackBerry simulator? [y/n/a] a");
+			LogHelper.println ("Configure the BlackBerry simulator? [y/n/a] a");
 			
 		} else {
 			
-			answer = ask ("Configure the BlackBerry simulator?");
+			answer = CLIHelper.ask ("Configure the BlackBerry simulator?");
 			
 		}
 		
-		if (answer == Yes || answer == Always) {
+		if (answer == YES || answer == ALWAYS) {
 			
 			var defines = getDefines ([ "BLACKBERRY_SIMULATOR_IP" ], [ "Simulator IP address" ]);
 			
@@ -1568,14 +1542,14 @@ class PlatformSetup {
 	
 	public static function setupEmscripten ():Void {
 		
-		var answer = ask ("Download and install Emscripten?");
+		var answer = CLIHelper.ask ("Download and install Emscripten?");
 		
-		if (answer == Yes || answer == Always) {
+		if (answer == YES || answer == ALWAYS) {
 			
-			Lib.println ("You may find instructions for installing Emscripten on the website.");
-			var secondAnswer = ask ("Would you like to open the wiki page now?");
+			LogHelper.println ("You may find instructions for installing Emscripten on the website.");
+			var secondAnswer = CLIHelper.ask ("Would you like to open the wiki page now?");
 			
-			if (secondAnswer != No) {
+			if (secondAnswer != NO) {
 				
 				ProcessHelper.openURL (emscriptenSDKURL);
 				
@@ -1658,9 +1632,9 @@ class PlatformSetup {
 		var setApacheCordova = false;
 		
 		var defines = getDefines ();
-		var answer = ask ("Download and install Apache Cordova?");
+		var answer = CLIHelper.ask ("Download and install Apache Cordova?");
 		
-		if (answer == Yes || answer == Always) {
+		if (answer == YES || answer == ALWAYS) {
 			
 			var downloadPath = "";
 			var defaultInstallPath = "";
@@ -1675,7 +1649,7 @@ class PlatformSetup {
 				
 			}
 			
-			var path = unescapePath (param ("Output directory [" + defaultInstallPath + "]"));
+			var path = unescapePath (CLIHelper.param ("Output directory [" + defaultInstallPath + "]"));
 			path = createPath (path, defaultInstallPath);
 			
 			downloadFile (apacheCordovaPath);
@@ -1734,7 +1708,7 @@ class PlatformSetup {
 			setApacheCordova = true;
 			defines.set ("CORDOVA_PATH", path);
 			writeConfig (defines.get ("HXCPP_CONFIG"), defines);
-			Lib.println ("");
+			LogHelper.println ("");
 			
 		}
 		
@@ -1769,197 +1743,70 @@ class PlatformSetup {
 		ProcessHelper.runCommand ("", "haxelib", [ "install", "cordova" ], true, true);
 		
 	}
-
-	public static function setupFirefoxOS (?askServer:Bool = true, ?devServer:Bool = false):Void {
-
-		var defines = getDefines ();
-		var existsProd = defines.exists("FIREFOX_MARKETPLACE_KEY") && defines.exists("FIREFOX_MARKETPLACE_SECRET");
-		var existsDev = defines.exists("FIREFOX_MARKETPLACE_DEV_KEY") && defines.exists("FIREFOX_MARKETPLACE_DEV_SECRET");
-
-		// TODO warning about the override of the account
-
-		Lib.println("To publish your application to the Firefox Marketplace you need to setup an account.");
-		var answer = ask ("Do you want to setup an account now?", ["y", "n"]);
-
-		if(answer == No) Sys.exit(0);
-
-		var server = "";
-
-		if(askServer) {
-			Lib.println("");
-			Lib.println("First of all you need to select the server you want to setup your account.");
-			Lib.println("Each server has its own configuration and can't be shared.");
-			Lib.println("\t1. Production server (" + FirefoxOSHelper.PRODUCTION_SERVER_URL + ")");
-			Lib.println("\t2. Development server (" + FirefoxOSHelper.DEVELOPMENT_SERVER_URL + ")");
-			Lib.println("\tq. Cancel");
-			answer = ask ("Choose the server to setup your Firefox Marketplace account.", ["1", "2", "q"]);
-		} else {
-			answer = devServer ? Custom("2") : Custom("1");
-		}
-
-		switch(answer) {
-			case Custom(x):
-				switch(x) {
-					case "1": 
-						server = FirefoxOSHelper.PRODUCTION_SERVER_URL;
-						devServer = false;
-
-					case "2": 
-						server = FirefoxOSHelper.DEVELOPMENT_SERVER_URL; 
-						devServer = true;
-
-					case _: Sys.exit(0);
-				}
-			case _:
-		}
-
-		if ((existsProd && !devServer) || (existsDev && devServer)) {
-
-			Lib.println("");
-			LogHelper.warn ("You will override your account settings!");
-			answer = ask ("Are you sure?", ["y", "n"]);
-			if(answer == No) {
-				Sys.exit(0);
-			}
-
-		}
-
-		Lib.println("");
-		Lib.println("Follow this instructions once the webpage has opened:");
-		Lib.println("\t*) Create a new account or login with an existing account.");
-		Lib.println("\t*) Create a developer API key at: " + server + "/developers/api");
-		Lib.println("\t*) Choose 'Command line' as the 'Client type' and hit 'Create'.");
-		answer = ask ("Open the webpage?", ["y", "n", "s"]);
-
-		if (answer == Yes || answer.match(Custom("s"))) {
-
-			if(answer == Yes) {
-
-				ProcessHelper.openURL(server + "/developers/api");
-				Lib.println("Once the OAuth key/secret pair has been created, hit Enter.");
-				Sys.stdin().readLine();
-
-			}
-
-			var isValid = false;
-
-			Lib.println("");
-			Lib.println("Fill the following fields with the OAuth key/secret pair recently created:");
-			var key = StringTools.trim (param ("Key"));
-			var secret = StringTools.trim (param ("Secret"));
-
-			Lib.println("");
-			var marketplace = new MarketplaceAPI(key, secret, devServer);
-			var name:String = "";
-			var account:Dynamic;
-
-			do {
-
-				Lib.println("Checking...");
-				account = marketplace.getUserAccount();
-				
-				if (account != null && account.display_name != null) {
-
-					name = account.display_name;
-					isValid = true;
-
-				}
-
-				if (!isValid) {
-
-					Lib.println("");
-					Lib.println("There was a problem authenticating your account.");
-					answer = ask ("Do you want to try again?", ["y", "n"]);
-					if (answer == Yes) {
-
-						key = StringTools.trim (param ("Key"));
-						secret = StringTools.trim (param ("Secret"));
-
-						marketplace.client.consumer.key = key;
-						marketplace.client.consumer.secret = secret;
-
-					} else {
-
-						marketplace.close();
-						Sys.exit(0);
-
-					}
-
-				}
-			} while (!isValid);
-			
-			Lib.println("");
-			Lib.println("Hello " + name + " :)");
-
-
-			defines.set("FIREFOX_MARKETPLACE" + (devServer ? "_DEV_" : "_") + "KEY", key);
-			defines.set("FIREFOX_MARKETPLACE" + (devServer ? "_DEV_" : "_") + "SECRET", secret);
-
-			writeConfig (defines.get ("HXCPP_CONFIG"), defines);
-			Lib.println("");
-		}
-
-	}
-
-
+	
+	
 	public static function setupLinux ():Void {
-		// Install using apt-get if available.
-		var whichAptGet = ProcessHelper.runProcess("", "which", ["apt-get"], true, true, true);
+		
+		var whichAptGet = ProcessHelper.runProcess ("", "which", ["apt-get"], true, true, true);
 		var hasApt = whichAptGet != null && whichAptGet != "";
-		if(hasApt) {
-
+		
+		if (hasApt) {
+			
 			// check if this is ubuntu saucy 64bit, which uses different packages.
-			var lsbId = ProcessHelper.runProcess("", "lsb_release", ["-si"], true, true, true);
-			var lsbRelease = ProcessHelper.runProcess("", "lsb_release", ["-sr"], true, true, true);
-			var arch = ProcessHelper.runProcess("", "uname", ["-m"], true, true, true);
+			var lsbId = ProcessHelper.runProcess ("", "lsb_release", ["-si"], true, true, true);
+			var lsbRelease = ProcessHelper.runProcess ("", "lsb_release", ["-sr"], true, true, true);
+			var arch = ProcessHelper.runProcess ("", "uname", ["-m"], true, true, true);
 			var isSaucy = lsbId == "Ubuntu\n" &&  lsbRelease == "13.10\n" && arch == "x86_64\n";
-
-			var packages = isSaucy ? ubuntuSaucyPackages : aptPackages;
-
-			trace(packages);
-
+			
+			var packages = isSaucy ? linuxUbuntuSaucyPackages : linuxAptPackages;
+			
 			var parameters = [ "apt-get", "install" ].concat (packages.split (" "));
 			ProcessHelper.runCommand ("", "sudo", parameters, false);
 			return;
+			
 		}
-
-		// Install using yum if available.
-		var whichYum = ProcessHelper.runProcess("", "which", ["yum"], true, true, true);
+		
+		var whichYum = ProcessHelper.runProcess ("", "which", ["yum"], true, true, true);
 		var hasYum = whichYum != null && whichYum != "";
-		if(hasYum) {
-			var parameters = [ "yum", "install" ].concat (yumPackages.split (" "));
+		
+		if (hasYum) {
+			
+			var parameters = [ "yum", "install" ].concat (linuxYumPackages.split (" "));
 			ProcessHelper.runCommand ("", "sudo", parameters, false);
 			return;
+			
 		}
-
-		// Install using pacman if available.
-		var whichPacman = ProcessHelper.runProcess("", "which", ["pacman"], true, true, true);
+		
+		var whichPacman = ProcessHelper.runProcess ("", "which", ["pacman"], true, true, true);
 		var hasPacman = whichPacman != null && whichPacman != "";
-		if(hasPacman) {
-			var parameters = [ "pacman", "-S", "--needed" ].concat (pacmanPackages.split (" "));
+		
+		if (hasPacman) {
+			
+			var parameters = [ "pacman", "-S", "--needed" ].concat (linuxPacmanPackages.split (" "));
 			ProcessHelper.runCommand ("", "sudo", parameters, false);
 			return;
+			
 		}
-
-		// No supported package manager.
-		Lib.println("Unable to find a supported package manager on your Linux distribution.");
-		Lib.println("For now, only apt-get, yum, and pacman are supported.");
-
+		
+		LogHelper.println ("Unable to find a supported package manager on your Linux distribution.");
+		LogHelper.println ("For now, only apt-get, yum, and pacman are supported.");
+		
 		Sys.exit (1);
+		
 	}
 	
 	
 	public static function setupMac ():Void {
 		
-		var answer = ask ("Download and install Apple Xcode?");
+		var answer = CLIHelper.ask ("Download and install Apple Xcode?");
 		
-		if (answer == Yes || answer == Always) {
+		if (answer == YES || answer == ALWAYS) {
 			
-			Lib.println ("You must purchase Xcode from the Mac App Store or download using a paid");
-			Lib.println ("member account with Apple.");
-			var secondAnswer = ask ("Would you like to open the download page?");
+			LogHelper.println ("You must purchase Xcode from the Mac App Store or download using a paid");
+			LogHelper.println ("member account with Apple.");
+			var secondAnswer = CLIHelper.ask ("Would you like to open the download page?");
 			
-			if (secondAnswer != No) {
+			if (secondAnswer != NO) {
 				
 				ProcessHelper.openURL (appleXcodeURL);
 				
@@ -1972,14 +1819,14 @@ class PlatformSetup {
 	
 	public static function setupTizen ():Void {
 		
-		var answer = ask ("Download and install the Tizen SDK?");
+		var answer = CLIHelper.ask ("Download and install the Tizen SDK?");
 		
-		if (answer == Yes || answer == Always) {
+		if (answer == YES || answer == ALWAYS) {
 			
-			Lib.println ("You may download the Tizen SDK from the Tizen Developer portal.");
-			var secondAnswer = ask ("Would you like to open the download page?");
+			LogHelper.println ("You may download the Tizen SDK from the Tizen Developer portal.");
+			var secondAnswer = CLIHelper.ask ("Would you like to open the download page?");
 			
-			if (secondAnswer != No) {
+			if (secondAnswer != NO) {
 				
 				ProcessHelper.openURL (tizenSDKURL);
 				
@@ -2000,9 +1847,9 @@ class PlatformSetup {
 	
 	public static function setupWebOS ():Void {
 		
-		var answer = ask ("Download and install the HP webOS SDK?");
+		var answer = CLIHelper.ask ("Download and install the HP webOS SDK?");
 		
-		if (answer == Yes || answer == Always) {
+		if (answer == YES || answer == ALWAYS) {
 			
 			var sdkPath = "";
 			
@@ -2027,26 +1874,26 @@ class PlatformSetup {
 				sdkPath = webOSMacSDKPath;
 				
 			}
-
+			
 			downloadFile (sdkPath);
 			runInstaller (Path.withoutDirectory (sdkPath));
-			Lib.println ("");
+			LogHelper.println ("");
 			
 		}
 		
 		if (PlatformHelper.hostPlatform == Platform.WINDOWS) {
 			
-			if (answer == Always) {
+			if (answer == ALWAYS) {
 				
-				Lib.println ("Download and install the CodeSourcery C++ toolchain? [y/n/a] a");
+				LogHelper.println ("Download and install the CodeSourcery C++ toolchain? [y/n/a] a");
 				
 			} else {
 				
-				answer = ask ("Download and install the CodeSourcery C++ toolchain?");
+				answer = CLIHelper.ask ("Download and install the CodeSourcery C++ toolchain?");
 				
 			}
-
-			if (answer != No) {
+			
+			if (answer != NO) {
 				
 				downloadFile (codeSourceryWindowsPath);
 				runInstaller (Path.withoutDirectory (codeSourceryWindowsPath));
@@ -2055,37 +1902,37 @@ class PlatformSetup {
 			
 		} else if (PlatformHelper.hostPlatform == Platform.LINUX) {
 			
-			if (answer == Always) {
+			if (answer == ALWAYS) {
 				
-				Lib.println ("Download and install Novacom? [y/n/a] a");
+				LogHelper.println ("Download and install Novacom? [y/n/a] a");
 				
 			} else {
 				
-				answer = ask ("Download and install Novacom?");
+				answer = CLIHelper.ask ("Download and install Novacom?");
 				
 			}
-
-			if (answer != No) {
-
-				var process = new Process("uname", ["-m"]);
-				var ret = process.stdout.readAll().toString();
-				var ret2 = process.stderr.readAll().toString();
-				process.exitCode(); //you need this to wait till the process is closed!
-				process.close();
 			
+			if (answer != NO) {
+				
+				var process = new Process("uname", ["-m"]);
+				var ret = process.stdout.readAll ().toString();
+				var ret2 = process.stderr.readAll ().toString();
+				process.exitCode (); //you need this to wait till the process is closed!
+				process.close ();
+				
 				var novacomPath = webOSLinuxX86NovacomPath;
-
+				
 				if (ret.indexOf ("64") > -1) {
-				
+					
 					novacomPath = webOSLinuxX64NovacomPath;
-				
+					
 				}
 				
 				downloadFile (novacomPath);
 				runInstaller (Path.withoutDirectory (novacomPath));
-			
+				
 			}
-		
+			
 		}
 		
 	}
@@ -2093,9 +1940,9 @@ class PlatformSetup {
 	
 	public static function setupWindows ():Void {
 		
-		var answer = ask ("Download and install Visual Studio C++ Express?");
+		var answer = CLIHelper.ask ("Download and install Visual Studio C++ Express?");
 		
-		if (answer == Yes || answer == Always) {
+		if (answer == YES || answer == ALWAYS) {
 			
 			downloadFile (windowsVisualStudioCPPPath);
 			runInstaller (Path.withoutDirectory (windowsVisualStudioCPPPath));
@@ -2122,11 +1969,11 @@ class PlatformSetup {
 		
 		if (PlatformHelper.hostPlatform == Platform.WINDOWS) {
 			
-			Lib.println ("Unable to access directory. Perhaps you need to run \"setup\" with administrative privileges?");
+			LogHelper.println ("Unable to access directory. Perhaps you need to run \"setup\" with administrative privileges?");
 			
 		} else {
 			
-			Lib.println ("Unable to access directory. Perhaps you should run \"setup\" again using \"sudo\"");
+			LogHelper.println ("Unable to access directory. Perhaps you should run \"setup\" again using \"sudo\"");
 			
 		}
 		
@@ -2159,6 +2006,7 @@ class PlatformSetup {
 	public static function updateHaxelib (haxelib:Haxelib):Void {
 		
 		var basePath = ProcessHelper.runProcess ("", "haxelib", [ "config" ]);
+		
 		if (basePath != null) {
 			
 			basePath = StringTools.trim (basePath.split ("\n")[0]);
@@ -2187,7 +2035,7 @@ class PlatformSetup {
 	}
 	
 	
-	private static function writeConfig (path:String, defines:Map <String, String>):Void {
+	public static function writeConfig (path:String, defines:Map <String, String>):Void {
 		
 		var newContent = "";
 		var definesText = "";
@@ -2256,37 +2104,37 @@ class PlatformSetup {
 
 
 class Progress extends haxe.io.Output {
-
+	
 	var o : haxe.io.Output;
 	var cur : Int;
 	var max : Int;
 	var start : Float;
-
+	
 	public function new(o) {
 		this.o = o;
 		cur = 0;
 		start = haxe.Timer.stamp();
 	}
-
+	
 	function bytes(n) {
 		cur += n;
 		if( max == null )
-			Lib.print(cur+" bytes\r");
+			Sys.print(cur+" bytes\r");
 		else
-			Lib.print(cur+"/"+max+" ("+Std.int((cur*100.0)/max)+"%)\r");
+			Sys.print(cur+"/"+max+" ("+Std.int((cur*100.0)/max)+"%)\r");
 	}
-
+	
 	public override function writeByte(c) {
 		o.writeByte(c);
 		bytes(1);
 	}
-
+	
 	public override function writeBytes(s,p,l) {
 		var r = o.writeBytes(s,p,l);
 		bytes(r);
 		return r;
 	}
-
+	
 	public override function close() {
 		super.close();
 		o.close();
@@ -2299,14 +2147,14 @@ class Progress extends haxe.io.Output {
 		
 		if (cur > 400) {
 			
-			Lib.print("Download complete : " + cur + " bytes in " + time + "s (" + speed + "KB/s)\n");
+			Sys.print("Download complete : " + cur + " bytes in " + time + "s (" + speed + "KB/s)\n");
 			
 		}
 		
 	}
-
+	
 	public override function prepare(m) {
 		max = m;
 	}
-
+	
 }

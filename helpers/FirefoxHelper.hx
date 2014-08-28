@@ -9,10 +9,11 @@ import project.HXProject;
 import lime.graphics.Image;
 import lime.net.*;
 import lime.net.oauth.*;
+import helpers.CLIHelper;
 import helpers.LogHelper;
 import project.PlatformConfig;
 
-class FirefoxOSHelper {
+class FirefoxHelper {
 
 	public static inline var PRODUCTION_SERVER_URL = "https://marketplace.firefox.com";
 	public static inline var DEVELOPMENT_SERVER_URL = "https://marketplace-dev.allizom.org";
@@ -107,7 +108,7 @@ class MarketplaceAPI {
 			
 		}
 		
-		entryPoint = (devServer ? FirefoxOSHelper.DEVELOPMENT_SERVER_URL : FirefoxOSHelper.PRODUCTION_SERVER_URL) + API_PATH;
+		entryPoint = (devServer ? FirefoxHelper.DEVELOPMENT_SERVER_URL : FirefoxHelper.PRODUCTION_SERVER_URL) + API_PATH;
 
 	}
 
@@ -246,7 +247,7 @@ class MarketplaceAPI {
 		var uploadingFunc:URLLoader->Int->Int->Void = null;
 		if(withProgress) {
 
-			uploadingFunc = function(l, up, dl) LogHelper.progress ('$progressMsg', up, data.length);
+			uploadingFunc = function(l, up, dl) CLIHelper.progress ('$progressMsg', up, data.length);
 			loader.onProgress.add(uploadingFunc);
 
 		}
