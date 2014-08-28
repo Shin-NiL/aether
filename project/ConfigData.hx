@@ -5,232 +5,476 @@ import haxe.xml.Fast;
 import helpers.LogHelper;
 import helpers.ObjectHelper;
 
+
+abstract ConfigData(Dynamic) to Dynamic from Dynamic {
 	
-	//this class wraps up the dynamic return with access to 
-private class ConfigDataValue {
-
-	public var value : Dynamic;
-
-	public function new(_value:Dynamic){
-
-		value = _value;
-
-	}
-
-	public function get( _value:String ) {
-		
-		return ConfigData.get(value, _value);
-
-	} 
-
-	public function exists( _value:String ) {
-
-		return ConfigData.exists( value, _value );
-
-	} 
-
-}
 	
-class ConfigData {
-	
-	public var config : Dynamic;
-
 	public function new () {
-
-		config = {};
-
+		
+		this = { };
+		
+	}
+	
+	
+	private function addBucket (bucket:String, parent:Dynamic):Dynamic {
+		
+		if (!Reflect.hasField (parent, bucket)) {
+			
+			log ("config data > adding a bucketType " + bucket);
+			Reflect.setField (parent, bucket, { });
+			
+		}
+		
+		return Reflect.field (parent, bucket);
+		
 	}
 	
 	
 	public function clone ():ConfigData {
 		
-		var new_configdata : ConfigData = new ConfigData();
+		return ObjectHelper.deepCopy (this);
+		
+	}
+	
+	
+	public function exists (id:String):Bool {
+		
+		var tree = id.split ('.');
+		
+		if (tree.length <= 1) {
 			
-			new_configdata.config = ObjectHelper.deepCopy (config);
-		
-		return new_configdata;
-
-	}
-	
-	
-	public static function get (from_config:Dynamic, value:String):Dynamic {
-		
-		var tree = value.split('.');
-
-			//no leafs? just fetch a value
-		if(tree.length <= 1) {
-			return Reflect.field(from_config, value);
+			return Reflect.hasField (this, id);
+			
 		}
-
-			//for each leaf in the tree the current advances till the last one
-		var current = from_config;
-		for(leaf in tree) {
-			current = Reflect.field(current, leaf);
-			if(current == null) {
-				return null;
+		
+		var current = this;
+		
+		for (leaf in tree) {
+			
+			if (Reflect.hasField (current, leaf)) {
+				
+				current = Reflect.field (current, leaf);
+				
+			} else {
+				
+				return false;
+				
 			}
+			
 		}
-
-			//if it reaches here, 
-			//its a valid field
-		return new ConfigDataValue(current);
+		
+		return true;
 		
 	}
 	
-	public static function exists (from_config:Dynamic, value:String):Bool {
+	
+	public function get (id:String):ConfigData {
 		
-		return get(from_config, value) != null;
-
+		var tree = id.split ('.');
+		
+		if (tree.length <= 1) {
+			
+			return Reflect.field (this, id);
+			
+		}
+		
+		var current = this;
+		
+		for (leaf in tree) {
+			
+			current = Reflect.field (current, leaf);
+			
+			if (current == null) {
+				
+				return null;
+				
+			}
+			
+		}
+		
+		return current;
+		
+	}
+	
+	
+	public function getArray (id:String, defaultValue:Array<Dynamic> = null):Array<Dynamic> {
+		
+		var tree = id.split ('.');
+		var array:Array<Dynamic> = null;
+		
+		if (tree.length <= 1) {
+			
+			array = Reflect.field (this, id + "___array");
+			
+			if (array == null && Reflect.hasField (this, id)) {
+				
+				array = [ Reflect.field (this, id) ];
+				
+			}
+			
+		} else {
+			
+			var current = this;
+			var field = tree.pop ();
+			
+			for (leaf in tree) {
+				
+				current = Reflect.field (current, leaf);
+				
+				if (current == null) {
+					
+					break;
+					
+				}
+				
+			}
+			
+			if (current != null) {
+				
+				array = Reflect.field (current, field + "___array");
+				
+				if (array == null && Reflect.hasField (current, field)) {
+					
+					array = [ Reflect.field (current, field) ];
+					
+				}
+				
+			}
+			
+		}
+		
+		if (array != null) {
+			
+			return array;
+			
+		}
+		
+		if (defaultValue == null) {
+			
+			defaultValue = [];
+			
+		}
+		
+		return defaultValue;
+		
+	}
+	
+	
+	public function getArrayString (id:String, childField:String = null, defaultValue:Array<String> = null):Array<String> {
+		
+		var array = getArray (id);
+		
+		if (array.length > 0) {
+			
+			var value = [];
+			
+			if (childField == null) {
+				
+				for (item in array) {
+					
+					value.push (Std.string (item));
+					
+				}
+				
+			} else {
+				
+				for (item in array) {
+					
+					value.push (Std.string (Reflect.field (item, childField)));
+					
+				}
+				
+			}
+			
+			return value;
+			
+		}
+		
+		if (defaultValue == null) {
+			
+			defaultValue = [];
+			
+		}
+		
+		return defaultValue;
+		
+	}
+	
+	
+	public function getBool (id:String, defaultValue:Bool = true):Bool {
+		
+		if (exists (id)) {
+			
+			return get (id) == "true";
+			
+		}
+		
+		return defaultValue;
+		
+	}
+	
+	
+	public function getInt (id:String, defaultValue:Int = 0):Int {
+		
+		if (exists (id)) {
+			
+			return Std.parseInt (get (id));
+			
+		}
+		
+		return defaultValue;
+		
+	}
+	
+	
+	public function getFloat (id:String, defaultValue:Float = 0):Float {
+		
+		if (exists (id)) {
+			
+			return Std.parseFloat (get (id));
+			
+		}
+		
+		return defaultValue;
+		
+	}
+	
+	
+	public function getString (id:String, defaultValue:String = ""):String {
+		
+		if (exists (id)) {
+			
+			return Std.string (get (id));
+			
+		}
+		
+		return defaultValue;
+		
+	}
+	
+	
+	private function log (v:Dynamic):Void {
+		
+		if (LogHelper.verbose) {
+			
+			LogHelper.println (v);
+			
+		}
+		
 	}
 	
 	
 	public function merge (other:ConfigData):Void {
 		
-		if(other != null) {
-			ObjectHelper.copyFieldsPreferObjectOverValue( other.config, config );
-		}
-		
-	}
-
-	function add_bucket( bucket:String, parent:Dynamic ) {
-		
-			//if it already exists, we don't create it
-		if(!Reflect.hasField(parent, bucket )) {
-			log("config data > adding a bucket_type " + bucket);
-			Reflect.setField(parent, bucket, {} );
-		}
-
-		return Reflect.field(parent, bucket);
-
-	}
-
-	function set_node( bucket:Dynamic, node:String, value:Dynamic ) {
+		if (other != null) {
 			
-		// log("config data > setting a node " + node + " to " + value + " on " + bucket);
-
-		var do_copy = true;
-		var exists = Reflect.hasField( bucket, node );
+			ObjectHelper.copyFieldsPreferObjectOverValue (other, this);
+			
+		}
 		
-		if( exists ) {
-
-			var value_dest = Reflect.field (bucket, node);
-			var type_source = Type.typeof(value).getName();
-			var type_dest = Type.typeof(value_dest).getName();
-
-			// trace(node + " / existed in dest as " + type_dest + " / " + type_source );
-
-				//if trying to copy a non object over an object, don't
-			if(type_source != "TObject" && type_dest == "TObject") {
-				do_copy = false;
-				if(LogHelper.verbose) {
-					LogHelper.println(node + " not merged by preference over object" );
-				}
+	}
+	
+	
+	public function parse (elem:Fast):Void {
+		
+		var bucket = this;
+		var bucketType = "";
+		
+		if (StringTools.startsWith (elem.name, "config:")) {
+			
+			var items = elem.name.split(':');
+			bucketType = items[1];
+			
+		}
+		
+		if (elem.has.type) {
+			
+			bucketType = elem.att.type;
+			
+		}
+		
+		if (bucketType != "") {
+			
+			bucket = addBucket (bucketType, this);
+			
+		}
+		
+		parseAttributes (elem, bucket);
+		parseChildren (elem, bucket);
+		
+		if (LogHelper.verbose) {
+			
+			LogHelper.println ("> current config : " + this);
+			
+		}
+		
+	}
+	
+	
+	private function parseAttributes (elem:Fast, bucket:Dynamic):Void {
+		
+		for (attrName in elem.x.attributes ()) {
+			
+			if (attrName != "type") {
+				
+				var attrValue = elem.x.get (attrName);
+				setNode (bucket, attrName, attrValue);
+				
 			}
-
+			
 		}
-
-		if(do_copy) {
-			Reflect.setField (bucket, node, value);
-		}
-
+		
 	}
-
-	function parse_attributes( elem:Fast, bucket:Dynamic ) {
-
-			//for each attribute, set the value onto the bucket
-		for( attr_name in elem.x.attributes() ) {
-
-			if(attr_name != "type") {
-
-				var attr_value = elem.x.get(attr_name);
-
-				set_node(bucket, attr_name, attr_value);
-
-			}
-
-		}
-
-	}
-
-	function parse_value( elem:Fast, bucket:Dynamic ) {
-
-		if(elem.innerHTML != "") {
-			set_node( bucket, elem.name, elem.innerHTML);
-		}
-
-	}
-
-	function log(v:Dynamic) {
-
-		if(LogHelper.verbose) {
-			LogHelper.println(v);
-		}
-
-	}
-
-	function parse_children( elem:Fast, bucket:Dynamic, ?depth:Int=0 ) {
-
-		for( child in elem.elements ) {
-			if(child.name != "config") {
+	
+	
+	private function parseChildren (elem:Fast, bucket:Dynamic, depth:Int = 0):Void {
+		
+		for (child in elem.elements) {
+			
+			if (child.name != "config") {
 				
 				// log("config data > child : " + child.name);
 				
 				var d = depth + 1;
-				var child_bucket = add_bucket(child.name, bucket);
-
-				var has_children = child.x.elements().hasNext();
-				var has_attributes = child.x.attributes().hasNext();
-
-				if(has_attributes) {
-					parse_attributes(child, child_bucket);
+				
+				var hasChildren = child.x.elements ().hasNext ();
+				var hasAttributes = child.x.attributes ().hasNext ();
+				
+				if (Reflect.hasField (bucket, child.name)) {
+					
+					if (!Reflect.hasField (bucket, child.name + "___array")) {
+						
+						Reflect.setField (bucket, child.name + "___array", [ ObjectHelper.deepCopy (Reflect.field (bucket, child.name)) ]);
+						
+					}
+					
+					var array:Array<Dynamic> = Reflect.field (bucket, child.name + "___array");
+					var arrayBucket = { };
+					array.push (arrayBucket);
+					
+					if (hasAttributes) {
+						
+						parseAttributes (child, arrayBucket);
+						
+					}
+					
+					if (hasChildren) {
+						
+						parseChildren (child, arrayBucket, d);
+						
+					}
+					
+					if (!hasChildren && !hasAttributes) {
+						
+						parseValue (child, arrayBucket);
+						
+					}
+					
 				}
-
-					//if there are any children, parse those too
-				if(has_children) {
-					parse_children(child, child_bucket, d);
+				
+				var childBucket = addBucket (child.name, bucket);
+				
+				if (hasAttributes) {
+					
+					parseAttributes (child, childBucket);
+					
 				}
-
-				if(!has_children && !has_attributes) {
-					parse_value(child, bucket);
+				
+				if (hasChildren) {
+					
+					parseChildren (child, childBucket, d);
+					
 				}
-
+				
+				if (!hasChildren && !hasAttributes) {
+					
+					parseValue (child, bucket);
+					
+				}
+				
 			}
 		}
-
+		
 	}
-
-
-	public function parse( elem:Fast ) {
-
-		var bucket = config;
-		var bucket_type = "";
-
-			//pul out the type from the node name
-		if(StringTools.startsWith(elem.name, "config:")) {
-			var items = elem.name.split(':');
-			bucket_type = items[1];
+	
+	
+	private function parseValue (elem:Fast, bucket:Dynamic):Void {
+		
+		if (elem.innerHTML != "") {
+			
+			setNode (bucket, elem.name, elem.innerHTML);
+			
 		}
-
-		if(elem.has.type) {
-			bucket_type = elem.att.type;
-		}
-
-			//create the bucket if there is a type, 
-			//otherwise it will store it in the root config
-		if(bucket_type != "") {
-			bucket = add_bucket( bucket_type, config );
-		}
-
-			//parse root attributes
-		parse_attributes( elem, bucket );
-
-			//parse children recursively
-		parse_children( elem, bucket );
-
-		if(LogHelper.verbose) {
-			LogHelper.println("> current config : " + config);
-		}
-
+		
 	}
+	
+	
+	public function set (id:String, value:Dynamic):Void {
+		
+		var tree = id.split ('.');
+		
+		if (tree.length <= 1) {
+			
+			Reflect.setField (this, id, value);
+			
+		}
+		
+		var current = this;
+		var field = tree.pop ();
+		
+		for (leaf in tree) {
+			
+			current = Reflect.field (current, leaf);
+			
+			if (current == null) {
+				
+				return;
+				
+			}
+			
+		}
+		
+		Reflect.setField (current, field, value);
+		
+	}
+	
+	
+	private function setNode (bucket:Dynamic, node:String, value:Dynamic):Void {
+		
+		// log("config data > setting a node " + node + " to " + value + " on " + bucket);
+		
+		var doCopy = true;
+		var exists = Reflect.hasField (bucket, node);
+		
+		if (exists) {
+			
+			var valueDest = Reflect.field (bucket, node);
+			var typeSource = Type.typeof (value).getName ();
+			var typeDest = Type.typeof (valueDest).getName ();
+			
+			// trace(node + " / existed in dest as " + type_dest + " / " + type_source );
+			
+			if (typeSource != "TObject" && typeDest == "TObject") {
+				
+				doCopy = false;
+				
+				if (LogHelper.verbose) {
+					
+					LogHelper.println (node + " not merged by preference over object");
+					
+				}
+				
+			}
+			
+		}
+		
+		if (doCopy) {
+			
+			Reflect.setField (bucket, node, value);
+			
+		}
+		
+	}
+	
 	
 }

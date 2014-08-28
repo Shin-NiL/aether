@@ -15,9 +15,9 @@ class CPPHelper {
 	
 	public static function compile (project:HXProject, path:String, flags:Array<String> = null, buildFile:String = "Build.xml"):Void {
 		
-		if (project.config.cpp.requireBuild) {
+		if (project.config.getBool ("cpp.requireBuild", true)) {
 			
-			var args = [ "run", project.config.cpp.buildLibrary, buildFile ];
+			var args = [ "run", project.config.getString ("cpp.buildLibrary", "hxcpp"), buildFile ];
 			var foundOptions = false;
 			
 			try {

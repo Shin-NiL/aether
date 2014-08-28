@@ -742,8 +742,8 @@ class ProjectXMLParser extends HXProject {
 							
 							case "BUILD_DIR": app.path = value;
 							case "SWF_VERSION": app.swfVersion = Std.parseFloat (value);
-							case "PRERENDERED_ICON": config.ios.prerenderedIcon = (value == "true");
-							case "ANDROID_INSTALL_LOCATION": config.android.installLocation = value;
+							case "PRERENDERED_ICON": config.set ("ios.prerenderedIcon", value);
+							case "ANDROID_INSTALL_LOCATION": config.set ("android.install-location", value);
 							
 						}
 						
@@ -974,15 +974,7 @@ class ProjectXMLParser extends HXProject {
 						
 						if (haxelib == null && (name == "std" || name == "regexp" || name == "zlib")) {
 							
-							if (config.cpp.buildLibrary != null) {
-								
-								haxelib = new Haxelib (config.cpp.buildLibrary);
-								
-							} else {
-								
-								haxelib = new Haxelib ("hxcpp");
-								
-							}
+							haxelib = new Haxelib (config.getString ("cpp.buildLibrary", "hxcpp"));
 							
 						}
 						
@@ -1356,29 +1348,29 @@ class ProjectXMLParser extends HXProject {
 								
 								case "minimum-sdk-version":
 									
-									config.android.minimumSDKVersion = Std.parseInt (value);
+									config.set ("android.minimum-sdk-version", Std.parseInt (value));
 								
 								case "target-sdk-version":
 									
-									config.android.targetSDKVersion = Std.parseInt (value);
+									config.set ("android.target-sdk-version", Std.parseInt (value));
 									
 								case "extension":
 									
-									ArrayHelper.addUnique (config.android.extensions, value);
+									//ArrayHelper.addUnique (config.android.extensions, value);
 								
 								case "permission":
 									
-									ArrayHelper.addUnique (config.android.permissions, value);
+									//ArrayHelper.addUnique (config.android.permissions, value);
 								
 								default:
 									
 									name = formatAttributeName (attribute);
 									
-									if (Reflect.hasField (config.android, name)) {
+									//if (Reflect.hasField (config.android, name)) {
 										
-										Reflect.setField (config.android, name, value);
+										//Reflect.setField (config.android, name, value);
 										
-									}
+									//}
 								
 							}
 							
@@ -1395,17 +1387,17 @@ class ProjectXMLParser extends HXProject {
 								
 								case "build-library":
 									
-									config.cpp.buildLibrary = value;
+									config.set ("cpp.buildLibrary", value);
 									
 								default:
 									
 									name = formatAttributeName (attribute);
 									
-									if (Reflect.hasField (config.android, name)) {
+									///if (Reflect.hasField (config.android, name)) {
 										
-										Reflect.setField (config.android, name, value);
+										//Reflect.setField (config.android, name, value);
 										
-									}
+									//}
 								
 							}
 							
@@ -1420,7 +1412,7 @@ class ProjectXMLParser extends HXProject {
 								var deployment = Std.parseFloat (substitute (element.att.deployment));
 								
 								// If it is specified, assume the dev knows what he is doing!
-								config.ios.deployment = deployment;
+								config.set ("ios.deployment", deployment);
 							}
 							
 							if (element.has.binaries) {
@@ -1450,44 +1442,42 @@ class ProjectXMLParser extends HXProject {
 							
 							if (element.has.devices) {
 								
-								config.ios.device = Reflect.field (IOSConfigDevice, substitute (element.att.devices).toUpperCase ());
+								config.set ("ios.device", substitute (element.att.devices).toLowerCase ());
 								
 							}
 							
 							if (element.has.compiler) {
 								
-								config.ios.compiler = substitute (element.att.compiler);
+								config.set ("ios.compiler", substitute (element.att.compiler));
 								
 							}
 							
 							if (element.has.resolve ("prerendered-icon")) {
 								
-								config.ios.prerenderedIcon = (substitute (element.att.resolve ("prerendered-icon")) == "true");
+								config.set ("ios.prerenderedIcon",  substitute (element.att.resolve ("prerendered-icon")));
 								
 							}
 							
 							if (element.has.resolve ("linker-flags")) {
 								
-								config.ios.linkerFlags.push (substitute (element.att.resolve ("linker-flags")));
+								//config.ios.linkerFlags.push (substitute (element.att.resolve ("linker-flags")));
 								
 							}
 							
 						}
-
-					case "firefoxos":
-
-						parseFirefoxOSElement(element, extensionPath);
-
+					
 					case "config": 
-
-						configData.parse( element );
-
+						
+						config.parse (element);
+					
 					default :
-
-						if(StringTools.startsWith(element.name, "config:")) {
-							configData.parse( element );
+						
+						if (StringTools.startsWith (element.name, "config:")) {
+							
+							config.parse (element);
+							
 						}
-
+					
 				}
 				
 			}
@@ -1574,98 +1564,6 @@ class ProjectXMLParser extends HXProject {
 			
 		}
 		
-	}
-
-	private function parseFirefoxOSElement(e:Fast, extensionPath:String = ""):Void {
-
-		var hasInApp = e.has.inAppPurchases && e.att.inAppPurchases == "true";
-
-		if (e.has.homepage) {
-			
-			config.firefoxos.applicationURL = e.att.homepage;
-		
-		}
-
-		if (e.has.price) {
-			
-			var price = Std.parseFloat(e.att.price);
-			config.firefoxos.price = price;
-			config.firefoxos.premiumType = price == 0 ? Free : Premium;
-
-		}
-
-		if (hasInApp) {
-
-			config.firefoxos.premiumType = config.firefoxos.price == 0 ? FreeInApp : PremiumInApp;
-
-		}
-
-		if (e.hasNode.description) {
-
-			config.firefoxos.description = StringTools.trim(e.node.description.innerData);
-			meta.description = config.firefoxos.description;
-
-		}
-		if (e.hasNode.privacyPolicy) {
-
-			config.firefoxos.privacyPolicy = StringTools.trim(e.node.privacyPolicy.innerData);
-
-		}
-
-		if (e.hasNode.support) {
-
-			var support = e.node.support;
-			if (support.has.url) {
-
-				config.firefoxos.supportURL = support.att.url;
-
-			}
-			if (support.has.email) {
-
-				config.firefoxos.supportEmail = support.att.email;
-
-			}
-
-		}
-
-		if (e.hasNode.categories) {
-
-			var categories:Array<String> = [];
-			var catNode = e.node.categories;
-			for(node in catNode.elements) {
-
-				if (node.name == "category" && node.has.name) {
-
-					categories.push(node.att.name);
-
-				}
-
-			}
-
-			config.firefoxos.categories = categories;
-
-		}
-
-		if (e.hasNode.screenshots) {
-
-			var screenshots:Array<String> = [];
-			var scNode = e.node.screenshots;
-			var path = "";
-			for(node in scNode.elements) {
-
-				if (node.name == "screenshot" && node.has.path) {
-
-					path = PathHelper.combine(extensionPath, node.att.path);
-					screenshots.push(path);
-
-				}
-
-			}
-
-			config.firefoxos.screenshots = screenshots;
-
-		}
-
 	}
 	
 	

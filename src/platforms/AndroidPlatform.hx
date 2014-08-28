@@ -267,11 +267,11 @@ class AndroidPlatform extends PlatformTarget {
 		var context = project.templateContext;
 		
 		context.CPP_DIR = project.app.path + "/android/obj";
-		context.ANDROID_INSTALL_LOCATION = project.config.android.installLocation;
-		context.ANDROID_MINIMUM_SDK_VERSION = project.config.android.minimumSDKVersion;
-		context.ANDROID_TARGET_SDK_VERSION = project.config.android.targetSDKVersion;
-		context.ANDROID_EXTENSIONS = project.config.android.extensions;
-		context.ANDROID_PERMISSIONS = project.config.android.permissions;
+		context.ANDROID_INSTALL_LOCATION = project.config.getString ("android.install-location", "preferExternal");
+		context.ANDROID_MINIMUM_SDK_VERSION = project.config.getInt ("android.minimum-sdk-version", 9);
+		context.ANDROID_TARGET_SDK_VERSION = project.config.getInt ("android.target-sdk-version", 16);
+		context.ANDROID_EXTENSIONS = project.config.getArrayString ("android.extension");
+		context.ANDROID_PERMISSIONS = project.config.getArrayString ("android.permission", [ "android.permission.WAKE_LOCK", "android.permission.INTERNET", "android.permission.VIBRATE", "android.permission.ACCESS_NETWORK_STATE" ]);
 		context.ANDROID_LIBRARY_PROJECTS = [];
 		
 		if (Reflect.hasField (context, "KEY_STORE")) context.KEY_STORE = StringTools.replace (context.KEY_STORE, "\\", "\\\\");

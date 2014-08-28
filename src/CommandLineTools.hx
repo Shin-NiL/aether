@@ -1089,7 +1089,7 @@ class CommandLineTools {
 						
 					} else if (field == "build-library") {
 						
-						overrides.config.cpp.buildLibrary = argValue;
+						overrides.config.set ("cpp.buildLibrary", argValue);
 						
 					} else if (field == "device") {
 						

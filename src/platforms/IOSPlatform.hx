@@ -118,7 +118,8 @@ class IOSPlatform extends PlatformTarget {
 					
 					var name = Path.withoutDirectory (Path.withoutExtension (dependency.path));
 					
-					project.config.ios.linkerFlags.push ("-force_load $SRCROOT/$PRODUCT_NAME/lib/$ARCHS/" + Path.withoutDirectory (dependency.path));
+					// TODO: enable again
+					//project.config.ios.linkerFlags.push ("-force_load $SRCROOT/$PRODUCT_NAME/lib/$ARCHS/" + Path.withoutDirectory (dependency.path));
 					
 					if (StringTools.startsWith (name, "lib")) {
 						
@@ -191,9 +192,9 @@ class IOSPlatform extends PlatformTarget {
 			
 		}
 		
-		if (project.config.ios.device == IOSConfigDevice.UNIVERSAL || project.config.ios.device == IOSConfigDevice.IPHONE) {
+		if (project.config.getString ("ios.device", "universal") == "universal" || project.config.getString ("ios.device") == "iphone") {
 			
-			if (project.config.ios.deployment < 5) {
+			if (project.config.getInt ("ios.deployment", 5) < 5) {
 				
 				ArrayHelper.addUnique (architectures, Architecture.ARMV6);
 				
@@ -231,18 +232,18 @@ class IOSPlatform extends PlatformTarget {
 		context.REQUIRED_CAPABILITY = requiredCapabilities;
 		context.ARMV6 = armv6;
 		context.ARMV7 = armv7;
-		context.TARGET_DEVICES = switch(project.config.ios.device) { case UNIVERSAL: "1,2"; case IPHONE : "1"; case IPAD : "2"; }
-		context.DEPLOYMENT = project.config.ios.deployment;
+		context.TARGET_DEVICES = switch (project.config.getString ("ios.device", "universal")) { case "iphone": "1"; case "ipad": "2"; default: "1,2";  }
+		context.DEPLOYMENT = project.config.getInt ("ios.deployment");
 		
-		if (project.config.ios.compiler == "llvm" || project.config.ios.compiler == "clang") {
+		if (project.config.getString ("ios.compiler") == "llvm" || project.config.getString ("ios.compiler", "clang") == "clang") {
 			
 			context.OBJC_ARC = true;
 			
 		}
 		
-		context.IOS_COMPILER = project.config.ios.compiler;
-		context.CPP_BUILD_LIBRARY = project.config.cpp.buildLibrary;
-		context.IOS_LINKER_FLAGS = ["-stdlib=libc++"].concat(project.config.ios.linkerFlags);
+		context.IOS_COMPILER = project.config.getString ("ios.compiler", "clang");
+		context.CPP_BUILD_LIBRARY = project.config.getString ("cpp.buildLibrary", "hxcpp");
+		context.IOS_LINKER_FLAGS = ["-stdlib=libc++"].concat (project.config.getArrayString ("ios.linker-flags"));
 		
 		switch (project.window.orientation) {
 			
@@ -300,7 +301,7 @@ class IOSPlatform extends PlatformTarget {
 		}
 		
 		context.HXML_PATH = PathHelper.findTemplate (project.templatePaths, "iphone/PROJ/haxe/Build.hxml");
-		context.PRERENDERED_ICON = project.config.ios.prerenderedIcon;
+		context.PRERENDERED_ICON = project.config.getBool ("ios.prerenderedIcon", false);
 		
 		/*var assets = new Array <Asset> ();
 		
