@@ -1195,11 +1195,14 @@ class CommandLineTools {
 				
 				var project = initializeProject ("firefox");
 				
+				LogHelper.info ("", "\x1b[36;1mUsing publishing target: FIREFOX MARKETPLACE\x1b[0m");
+				
 				if (FirefoxMarketplace.isValid (project)) {
 					
 					buildProject (project, "build");
 					
 					LogHelper.info ("", "\n\x1b[36;1mRunning command: PUBLISH\x1b[0m");
+					
 					FirefoxMarketplace.publish (project);
 					
 				}

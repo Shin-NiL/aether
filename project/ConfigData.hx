@@ -257,7 +257,7 @@ abstract ConfigData(Dynamic) to Dynamic from Dynamic {
 		
 		if (LogHelper.verbose) {
 			
-			LogHelper.println (v);
+			//LogHelper.println (v);
 			
 		}
 		
@@ -302,11 +302,7 @@ abstract ConfigData(Dynamic) to Dynamic from Dynamic {
 		parseAttributes (elem, bucket);
 		parseChildren (elem, bucket);
 		
-		if (LogHelper.verbose) {
-			
-			LogHelper.println ("> current config : " + this);
-			
-		}
+		log ("> current config : " + this);
 		
 	}
 	
@@ -457,12 +453,7 @@ abstract ConfigData(Dynamic) to Dynamic from Dynamic {
 			if (typeSource != "TObject" && typeDest == "TObject") {
 				
 				doCopy = false;
-				
-				if (LogHelper.verbose) {
-					
-					LogHelper.println (node + " not merged by preference over object");
-					
-				}
+				log (node + " not merged by preference over object");
 				
 			}
 			

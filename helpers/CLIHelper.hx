@@ -83,7 +83,9 @@ class CLIHelper {
 	
 	public static function progress (prefix:String, now:Int, total:Int):Void {
 		
-		LogHelper.print ('\r$prefix ( $now / $total )');
+		var percent = Math.floor ((now / total) * 100);
+		
+		LogHelper.print ('\r$prefix $now/$total ($percent%)');
 		
 	}
 	
