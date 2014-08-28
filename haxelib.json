@@ -4,8 +4,8 @@
 	"license": "MIT",
 	"tags": [],
 	"description": "Command-line tools for Haxe projects",
-	"version": "1.6.3",
-	"releasenote": "Initial support for static-link support on Windows, minor fix",
+	"version": "1.6.4",
+	"releasenote": "Improved project.config and initial Firefox Marketplace publishing",
 	"contributors": [ "singmajesty" ],
 	"dependencies": {}
 }
