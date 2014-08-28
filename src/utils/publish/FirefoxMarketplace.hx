@@ -241,7 +241,7 @@ class FirefoxMarketplace {
 			LogHelper.info ("Application submitted!");
 			LogHelper.println ("");
 			LogHelper.info  ("Before the application is fully published, you will need to fill out a content");
-			LogHelper.info  ("rating questionnaire, and send the applicaiton for review");
+			LogHelper.info  ("rating questionnaire, and send the application for review");
 			LogHelper.println ("");
 			var answer = CLIHelper.ask ("Would you like to complete your submission now?");
 			
