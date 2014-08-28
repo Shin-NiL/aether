@@ -253,7 +253,7 @@ class FirefoxMarketplace {
 			} else {
 				
 				LogHelper.println ("");
-				LogHelper.info  ("You can complete your submission later by going to" + devUrlApp);
+				LogHelper.info  ("You can complete your submission later by going to " + devUrlApp);
 				
 			}
 			
