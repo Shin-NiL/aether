@@ -239,6 +239,7 @@ class FirefoxMarketplace {
 			
 			LogHelper.println ("");
 			LogHelper.info ("Application submitted!");
+			Sys.sleep (1);
 			LogHelper.println ("");
 			LogHelper.info  ("Before the application is fully published, you will need to fill out a content");
 			LogHelper.info  ("rating questionnaire, and send the application for review");
@@ -339,69 +340,81 @@ class FirefoxMarketplace {
 		LogHelper.println ("You need to link your developer account to publish to the Firefox Marketplace");
 		var answer = CLIHelper.ask ("Would you like to open the developer site now?");
 		
-		if (answer == NO) Sys.exit (0);
-		
-		var server = "";
-		
-		if (askServer) {
+		if (answer == YES || answer == ALWAYS) {
+			
+			var server = "";
+			
+			/*if (askServer) {
+				
+				LogHelper.println ("");
+				LogHelper.println ("First of all you need to select the server you want to setup your account.");
+				LogHelper.println ("Each server has its own configuration and can't be shared.");
+				LogHelper.println ("\t1. Production server (" + FirefoxHelper.PRODUCTION_SERVER_URL + ")");
+				LogHelper.println ("\t2. Development server (" + FirefoxHelper.DEVELOPMENT_SERVER_URL + ")");
+				LogHelper.println("\tq. Cancel");
+				answer = CLIHelper.ask ("Choose the server to setup your Firefox Marketplace account.", ["1", "2", "q"]);
+				
+			} else {*/
+				
+				answer = devServer ? CUSTOM ("2") : CUSTOM ("1");
+				
+			//}
+			
+			switch (answer) {
+				
+				case CUSTOM ("1"):
+					
+					server = FirefoxHelper.PRODUCTION_SERVER_URL;
+					devServer = false;
+				
+				case CUSTOM ("2"):
+					
+					server = FirefoxHelper.DEVELOPMENT_SERVER_URL; 
+					devServer = true;
+				
+				default: Sys.exit (0);
+				
+			}
+			
+			/*if ((existsProd && !devServer) || (existsDev && devServer)) {
+				
+				LogHelper.info ("");
+				LogHelper.warn ("You will override your account settings!");
+				answer = CLIHelper.ask ("Are you sure?", ["y", "n"]);
+				
+				if (answer == NO) {
+					
+					Sys.exit (0);
+					
+				}
+				
+			}*/
 			
 			LogHelper.println ("");
-			LogHelper.println ("First of all you need to select the server you want to setup your account.");
-			LogHelper.println ("Each server has its own configuration and can't be shared.");
-			LogHelper.println ("\t1. Production server (" + FirefoxHelper.PRODUCTION_SERVER_URL + ")");
-			LogHelper.println ("\t2. Development server (" + FirefoxHelper.DEVELOPMENT_SERVER_URL + ")");
-			LogHelper.println("\tq. Cancel");
-			answer = CLIHelper.ask ("Choose the server to setup your Firefox Marketplace account.", ["1", "2", "q"]);
+			LogHelper.info ("Opening \"" + server + "/developers/api\"...");
+			LogHelper.println ("");
+			LogHelper.info (" * Create a new account or login");
+			LogHelper.info (" * Choose \"Command line\" as the client type then press \"Create\"");
 			
-		} else {
+			Sys.sleep (3);
+			if (LogHelper.verbose) LogHelper.println ("");
+			ProcessHelper.openURL (server + "/developers/api");
+			Sys.sleep (2);
 			
-			answer = devServer ? CUSTOM ("2") : CUSTOM ("1");
+			LogHelper.println ("");
+			LogHelper.info ("\x1b[1mPress any key to continue\x1b[0m");
 			
-		}
-		
-		switch (answer) {
-			
-			case CUSTOM ("1"):
+			try {
 				
-				server = FirefoxHelper.PRODUCTION_SERVER_URL;
-				devServer = false;
-			
-			case CUSTOM ("2"):
+				Sys.stdin ().readLine ();
 				
-				server = FirefoxHelper.DEVELOPMENT_SERVER_URL; 
-				devServer = true;
-			
-			default: Sys.exit (0);
-			
-		}
-		
-		if ((existsProd && !devServer) || (existsDev && devServer)) {
-			
-			LogHelper.info ("");
-			LogHelper.warn ("You will override your account settings!");
-			answer = CLIHelper.ask ("Are you sure?", ["y", "n"]);
-			
-			if (answer == NO) {
+			} catch (e:Dynamic) {
 				
 				Sys.exit (0);
 				
 			}
 			
 		}
-		
-		LogHelper.println ("");
-		LogHelper.info ("Opening \"" + server + "/developers/api\"...");
-		LogHelper.println ("");
-		LogHelper.info (" * Create a new account or login");
-		LogHelper.info (" * Choose \"Command line\" as the client type then press \"Create\"");
-		LogHelper.println ("");
-		LogHelper.info ("\x1b[1mPress any key to continue\x1b[0m");
-		Sys.stdin ().readLine ();
-		
-		ProcessHelper.openURL (server + "/developers/api");
-		
-		Sys.sleep (1);
-		if (LogHelper.verbose) LogHelper.println ("");
 		
 		var key = StringTools.trim (CLIHelper.param ("OAuth Key"));
 		var secret = StringTools.trim (CLIHelper.param ("OAuth Secret"));

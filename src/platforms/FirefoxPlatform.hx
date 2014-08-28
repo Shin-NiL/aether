@@ -58,7 +58,7 @@ class FirefoxPlatform extends HTML5Platform {
 		FileHelper.recursiveCopyTemplate (project.templatePaths, "firefox/hxml", destination, context);
 		FileHelper.recursiveCopyTemplate (project.templatePaths, "firefox/template", destination, context);
 		
-		var sizes = [ 30, 60, 128 ];
+		var sizes = [ 32, 48, 64, 128, 512 ];
 		
 		for (size in sizes) {
 			
