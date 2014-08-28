@@ -189,7 +189,7 @@ class FirefoxMarketplace {
 		if (response.valid) {
 			
 			//LogHelper.println (" VALID");
-			LogHelper.print ("Creating application...");
+			LogHelper.info ("Sending application details...");
 			response = marketplace.createApp (uploadID);
 			
 			if (response.error || response.id == null) {
@@ -203,7 +203,7 @@ class FirefoxMarketplace {
 			appSlug = response.slug;
 			
 			//LogHelper.println ("OK");
-			LogHelper.print ("Updating application information... ");
+			//LogHelper.print ("Updating application information... ");
 			response = marketplace.updateAppInformation (appID, project);
 			
 			if (response.error) {
@@ -214,7 +214,7 @@ class FirefoxMarketplace {
 			}
 			
 			//LogHelper.println ("OK");
-			LogHelper.println ("Updating screenshots:");
+			//LogHelper.println ("Updating screenshots:");
 			
 			var screenshots:Array<String> = project.config.getArrayString ("firefox-marketplace.screenshots.screenshot", "path");
 			
@@ -237,6 +237,27 @@ class FirefoxMarketplace {
 			
 			var havePayments = project.config.getString ("firefox-marketplace.premium-type", "free") != cast PremiumType.FREE;
 			
+			LogHelper.println ("");
+			LogHelper.info ("Application submitted!");
+			LogHelper.println ("");
+			LogHelper.info  ("Before the application is fully published, you will need to fill out a content");
+			LogHelper.info  ("rating questionnaire, and send the applicaiton for review");
+			LogHelper.println ("");
+			var answer = CLIHelper.ask ("Would you like to complete your submission now?");
+			
+			if (answer == YES || answer == ALWAYS) {
+				
+				if (LogHelper.verbose) LogHelper.println ("");
+				ProcessHelper.openURL (urlContentRatings); 
+				
+			} else {
+				
+				LogHelper.println ("");
+				LogHelper.info  ("You can complete your submission later by going to" + devUrlApp);
+				
+			}
+			
+			/*
 			LogHelper.println ("");
 			LogHelper.warn ("Before this application can be reviewed & published:");
 			LogHelper.warn ("* You will need to fill the contents rating questionnaire *");
@@ -273,7 +294,7 @@ class FirefoxMarketplace {
 			LogHelper.println ("Your application listing page is:");
 			LogHelper.println ('$urlApp');
 			LogHelper.println ("");
-			LogHelper.println ("Goodbye!");
+			LogHelper.println ("Goodbye!");*/
 			
 		} else {
 			
@@ -432,33 +453,12 @@ class FirefoxMarketplace {
 		
 		LogHelper.println ("Hello " + name + "!");
 		
+		LogHelper.mute = true;
+		defines = PlatformSetup.getDefines ();
+		LogHelper.mute = false;
+		
 		defines.set ("FIREFOX_MARKETPLACE" + (devServer ? "_DEV_" : "_") + "KEY", key);
 		defines.set ("FIREFOX_MARKETPLACE" + (devServer ? "_DEV_" : "_") + "SECRET", secret);
-		
-		if (!defines.exists ("HXCPP_CONFIG")) {
-			
-			var home = "";
-			var env = Sys.environment ();
-			
-			if (env.exists ("HOME")) {
-				
-				home = env.get ("HOME");
-				
-			} else if (env.exists ("USERPROFILE")) {
-				
-				home = env.get ("USERPROFILE");
-				
-			} else {
-				
-				LogHelper.println ("Warning : No 'HOME' variable set - .hxcpp_config.xml might be missing.");
-				
-				return null;
-				
-			}
-			
-			defines.set ("HXCPP_CONFIG", home + "/.hxcpp_config.xml");
-			
-		}
 		
 		PlatformSetup.writeConfig (defines.get ("HXCPP_CONFIG"), defines);
 		LogHelper.println ("");
@@ -505,31 +505,31 @@ class FirefoxHelper {
 		
 		if (project.meta.title == "") {
 			
-			errors.push ("You need to have a title\n\n\t<meta title=\"\"/>\n");
+			errors.push ("You need to have a title\n\n\t<meta title=\"Hello World\"/>\n");
 			
 		}
 		
 		if (project.meta.title.length > TITLE_MAX_CHARS) {
 			
-			errors.push ("Your title is too long (max " + TITLE_MAX_CHARS + " characters)");
+			errors.push ("Your title is too long (max " + TITLE_MAX_CHARS + " characters)\n");
 			
 		}
 		
 		if (project.config.getString ("firefox-marketplace.description", project.meta.description) == "") {
 			
-			errors.push ("You need to have a description\n\n\t<meta description=\"\"/>\n");
+			errors.push ("You need to have a description\n\n\t<meta description=\"My description\"/>\n");
 			
 		}
 		
 		if (project.meta.company == "") {
 			
-			errors.push ("You need to have a company name\n\n\t<meta company=\"\"/>\n");
+			errors.push ("You need to have a company name\n\n\t<meta company=\"Company Name\"/>\n");
 			
 		}
 		
 		if (project.meta.companyUrl == "") {
 			
-			errors.push ("You need to have a company URL\n\n\t<meta company-url=\"\"/>\n");
+			errors.push ("You need to have a company URL\n\n\t<meta company-url=\"http://www.company.com\"/>\n");
 			
 		}
 		
@@ -537,7 +537,7 @@ class FirefoxHelper {
 		
 		if (categories.length == 0) {
 			
-			errors.push ("You need to have at least one category\n\n\t<config type=\"firefox-marketplace\">\n\t   <categories>\n\t      <category name=\"\"/>\n\t   </categories>\n\t</config>\n");
+			errors.push ("You need to have at least one category\n\n\t<config type=\"firefox-marketplace\">\n\t   <categories>\n\t      <category name=\"games\"/>\n\t   </categories>\n\t</config>\n");
 			
 		} else if (categories.length > MAX_CATEGORIES) {
 			
@@ -547,13 +547,13 @@ class FirefoxHelper {
 		
 		if (project.config.getString ("firefox-marketplace.privacyPolicy") == "") {
 			
-			errors.push ("You need to have a privacy policy\n\n\t<config type=\"firefox-marketplace\">\n\t   <privacyPolicy></privacyPolicy>\n\t</config>\n");
+			errors.push ("You need to have a privacy policy\n\n\t<config type=\"firefox-marketplace\">\n\t   <privacyPolicy>Policy detail</privacyPolicy>\n\t</config>\n");
 			
 		}
 		
 		if (project.config.getString ("firefox-marketplace.support.email") == "") {
 			
-			errors.push ("You need to have a support email address\n\n\t<config type=\"firefox-marketplace\">\n\t   <support email=\"\"/>\n\t</config>\n");
+			errors.push ("You need to have a support email address\n\n\t<config type=\"firefox-marketplace\">\n\t   <support email=\"support@company.com\"/>\n\t</config>\n");
 			
 		}
 		
@@ -561,7 +561,7 @@ class FirefoxHelper {
 		
 		if (screenshots.length == 0) {
 			
-			errors.push ("You need to have at least one screenshot\n\n\t<config type=\"firefox-marketplace\">\n\t   <screenshots>\n\t      <screenshot path=\"\"/>\n\t   </screenshots>\n\t</config>\n");
+			errors.push ("You need to have at least one screenshot\n\n\t<config type=\"firefox-marketplace\">\n\t   <screenshots>\n\t      <screenshot path=\"screenshot.png\"/>\n\t   </screenshots>\n\t</config>\n");
 			
 		} else {
 			
@@ -569,7 +569,16 @@ class FirefoxHelper {
 				
 				if (!isScreenshotValid (path)) {
 					
-					errors.push ("Screenshot \"" + Path.withoutDirectory (path) + "\" is not valid");
+					if (!FileSystem.exists (path)) {
+						
+						errors.push ("Screenshot \"" + Path.withoutDirectory (path) + "\" does not exist\n");
+						
+					} else {
+						
+						errors.push ("Screenshot \"" + Path.withoutDirectory (path) + "\" must be at least 320 x 480 in size\n");
+						
+					}
+					
 					
 				}
 				
@@ -802,12 +811,12 @@ class MarketplaceAPI {
 				}
 			};
 			
-			response = load (POST, 'apps/app/$appID/preview/', Json.stringify (screenshot), '\tUploading ($filename):'); 
+			response = load (POST, 'apps/app/$appID/preview/', Json.stringify (screenshot), 'Uploading screenshot:'); 
 			
 		} else {
 			
 			response.error = true;
-			response.customError = 'File $path doesn\'t exist';
+			response.customError = 'File "$path" does not exist';
 			
 		}
 		
