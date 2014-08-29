@@ -135,6 +135,110 @@ class CommandLineTools {
 	}
 	
 	
+	#if (neko && (haxe_210 || haxe3))
+	public static function __init__ ():Void {
+		
+		var process = new Process ("haxelib", [ "path", "aether" ]);
+		var path = "";
+		var lines = new Array <String> ();
+		
+		try {
+			
+			while (true) {
+				
+				var length = lines.length;
+				var line = process.stdout.readLine ();
+				
+				if (length > 0 && StringTools.trim (line) == "-D aether") {
+					
+					path = StringTools.trim (lines[length - 1]);
+					
+				}
+				
+				lines.push (line);
+				
+			}
+			
+		} catch (e:Dynamic) {
+			
+		}
+		
+		if (path == "") {
+			
+			for (line in lines) {
+				
+				if (line != "" && line.substr (0, 1) != "-") {
+					
+					try {
+						
+						if (FileSystem.exists (line)) {
+							
+							path = line;
+							
+						}
+						
+					} catch (e:Dynamic) {}
+					
+				}
+				
+			}
+			
+		}
+		
+		process.close ();
+		path += "/ndll/";
+		
+		switch (PlatformHelper.hostPlatform) {
+			
+			case WINDOWS:
+				
+				untyped $loader.path = $array (path + "Windows/", $loader.path);
+				
+			case MAC:
+				
+				//if (PlatformHelper.hostArchitecture == Architecture.X64) {
+					
+					untyped $loader.path = $array (path + "Mac64/", $loader.path);
+					
+				//} else {
+					
+				//	untyped $loader.path = $array (path + "Mac/", $loader.path);
+					
+				//}
+				
+			case LINUX:
+				
+				var arguments = Sys.args ();
+				var raspberryPi = false;
+				
+				for (argument in arguments) {
+					
+					if (argument == "-rpi") raspberryPi = true;
+					
+				}
+				
+				if (raspberryPi) {
+					
+					untyped $loader.path = $array (path + "RPi/", $loader.path);
+					
+				} else if (PlatformHelper.hostArchitecture == Architecture.X64) {
+					
+					untyped $loader.path = $array (path + "Linux64/", $loader.path);
+					
+				} else {
+					
+					untyped $loader.path = $array (path + "Linux/", $loader.path);
+					
+				}
+			
+			default:
+			
+		}
+		
+	}
+	#end
+	
+	
 	private function buildProject (project:HXProject, command:String = "") {
 		
 		if (command == "") {

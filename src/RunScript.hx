@@ -98,7 +98,7 @@ class RunScript {
 					
 				}
 				
-				/*var platforms = [ "Windows", "Mac", "Mac64", "Linux", "Linux64" ];
+				var platforms = [ "Windows", "Mac", "Mac64", "Linux", "Linux64" ];
 				
 				for (platform in platforms) {
 					
@@ -119,7 +119,7 @@ class RunScript {
 						
 					}
 					
-				}*/
+				}
 				
 			} else if (target == "clean") {
 				
