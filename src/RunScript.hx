@@ -265,18 +265,18 @@ class RunScript {
 				
 				if (!flags.exists ("debug")) {
 					
-					runCommand (path, "haxelib", [ "run", buildLib, buildFile, "-Dandroid" ].concat (defines));
+					runCommand (path, "haxelib", [ "run", buildLib, buildFile, "-Dandroid", "-DPLATFORM=android-10" ].concat (defines));
 					synchronizeNDLL ("Android/liblime.so");
-					runCommand (path, "haxelib", [ "run", buildLib, buildFile, "-Dandroid", "-DHXCPP_ARMV7", "-DHXCPP_ARM7" ].concat (defines));
+					runCommand (path, "haxelib", [ "run", buildLib, buildFile, "-Dandroid", "-DHXCPP_ARMV7", "-DHXCPP_ARM7", "-DPLATFORM=android-10" ].concat (defines));
 					synchronizeNDLL ("Android/liblime-v7.so");
 					
 				}
 				
 				if (!flags.exists ("release")) {
 					
-					runCommand (path, "haxelib", [ "run", buildLib, buildFile, "-Dandroid", "-Ddebug", "-Dfulldebug" ].concat (defines));
+					runCommand (path, "haxelib", [ "run", buildLib, buildFile, "-Dandroid", "-DPLATFORM=android-10", "-Ddebug", "-Dfulldebug" ].concat (defines));
 					synchronizeNDLL ("Android/liblime-debug.so");
-					runCommand (path, "haxelib", [ "run", buildLib, buildFile, "-Dandroid", "-DHXCPP_ARMV7", "-DHXCPP_ARM7", "-Ddebug", "-Dfulldebug" ].concat (defines));
+					runCommand (path, "haxelib", [ "run", buildLib, buildFile, "-Dandroid", "-DHXCPP_ARMV7", "-DHXCPP_ARM7", "-DPLATFORM=android-10", "-Ddebug", "-Dfulldebug" ].concat (defines));
 					synchronizeNDLL ("Android/liblime-debug-v7.so");
 					
 				}
