@@ -69,7 +69,7 @@ class EmscriptenPlatform extends PlatformTarget {
 		
 		for (ndll in project.ndlls) {
 			
-			var path = PathHelper.getLibraryPath (ndll, "Emscripten", "", ".a", project.debug);
+			var path = PathHelper.getLibraryPath (ndll, "Emscripten", "lib", ".a", project.debug);
 			args.push (path);
 			
 		}
